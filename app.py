@@ -1,7 +1,7 @@
+import os
 from datetime import datetime
 import mysql.connector
 from flask import Flask, render_template, request, redirect, url_for, flash
-import os
 import pandas as pd
 import plotly.graph_objects as go
 from dotenv import load_dotenv
