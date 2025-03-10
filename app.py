@@ -16,6 +16,7 @@ db_config = {
     "user": os.getenv("DB_USER"),
     "password": os.getenv("DB_PASSWORD"),
     "database": os.getenv("DB_NAME"),
+    'port': os.getenv('DB_PORT')
 }
 
 app = Flask(__name__)
@@ -488,4 +489,4 @@ def config():
 
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run(host="0.0.0.0", port=5000, debug=False)
