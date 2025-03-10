@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reporte de Gastos</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>v
+</head>
+<body>
+    <!-- Barra lateral -->
+    <div class="sidebar">
+        <h3>Menú</h3>
+        <a href="/">Inicio</a>
+        <a href="/gastos">Histórico</a>
+        <a href="/config">Configuración</a>
+
+        <!-- Selector de fecha en la barra lateral -->
+        <div class="date-selector">
+            <form action="{{ url_for('report') }}" method="post">
+                <label for="mes">Mes:</label>
+                <select name="mes" id="mes">
+                    <option value="Enero" {% if mes_actual == 'Enero' %}selected{% endif %}>Enero</option>
+                    <option value="Febrero" {% if mes_actual == 'Febrero' %}selected{% endif %}>Febrero</option>
+                    <option value="Marzo" {% if mes_actual == 'Marzo' %}selected{% endif %}>Marzo</option>
+                    <option value="Abril" {% if mes_actual == 'Abril' %}selected{% endif %}>Abril</option>
+                    <option value="Mayo" {% if mes_actual == 'Mayo' %}selected{% endif %}>Mayo</option>
+                    <option value="Junio" {% if mes_actual == 'Junio' %}selected{% endif %}>Junio</option>
+                    <option value="Julio" {% if mes_actual == 'Julio' %}selected{% endif %}>Julio</option>
+                    <option value="Agosto" {% if mes_actual == 'Agosto' %}selected{% endif %}>Agosto</option>
+                    <option value="Septiembre" {% if mes_actual == 'Septiembre' %}selected{% endif %}>Septiembre</option>
+                    <option value="Octubre" {% if mes_actual == 'Octubre' %}selected{% endif %}>Octubre</option>
+                    <option value="Noviembre" {% if mes_actual == 'Noviembre' %}selected{% endif %}>Noviembre</option>
+                    <option value="Diciembre" {% if mes_actual == 'Diciembre' %}selected{% endif %}>Diciembre</option>
+                </select>
+
+                <label for="anio">Año:</label>
+                <input type="number" name="anio" id="anio" value="{{ anio_actual }}" required>
+
+                <button type="submit">Mostrar gráficas</button>
+            </form>
+        </div>
+    </div>
+
+    <div class="content">
+        <header class="main-header">
+            <h1>Seguimiento cuentas Pino</h1>
+        </header>
+
+        <h2>Reporte de Gastos de {{ mes_actual }} {{ anio_actual }}</h2>
+
+        <div class="report-table">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Categoría</th>
+                        <th>Descripción</th>
+                        <th>Monto</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for gasto in gastos_mes %}
+                        <tr>
+                            <td>{{ gasto.categoria }}</td>
+                            <td>{{ gasto.descripcion }}</td>
+                            <td>{{ gasto.monto }}</td>
+                        </tr>
+                    {% else %}
+                        <tr>
+                            <td colspan="3">No hay gastos registrados para este mes.</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <h3>Total de gastos: {{ total_gastos }}</h3>
+        <h3>Saldo restante: <span class="{% if (presupuesto_mensual - total_gastos) < 0 %}negativo{% endif %}">{{ presupuesto_mensual - total_gastos }}</span></h3>
+
+        <br>
+
+        <div class="pie">
+            <h2>Gráfico de distribución de gastos:</h2>
+            <div>
+                {{ fig_pie | safe }}
+            </div>
+        </div>
+
+        <div>
+            <h2>Evolución de Gastos por Categoría (Últimos 12 meses):</h2>
+            <div class='bar'>
+                {{ fig_compras | safe }}
+            </div>
+
+            <div class='bar'>
+                {{ fig_facturas | safe }}
+            </div>
+
+            <div class='bar'>
+                {{ fig_gasolina | safe }}
+            </div>
+        </div>
+        
+    </div>
+
+</body>
+</html>

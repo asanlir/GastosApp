@@ -1,0 +1,543 @@
+/* --- Estilos generales --- */
+body {
+    font-family: Arial, sans-serif;
+    background-color: #ecf0f1;
+    margin: 0;
+    padding: 0;
+    display: flex;
+}
+
+.container {
+    width: 80%;
+    max-width: 1000px;
+    margin: 20px auto;
+    background: white;
+    padding: 20px;
+    box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+/* --- Barra lateral --- */
+.sidebar {
+    width: 250px;
+    background-color: #2c3e50;
+    color: white;
+    padding: 20px;
+    position: fixed;
+    height: 100%;
+    left: 0;
+    top: 0;
+    box-shadow: 2px 0 5px rgba(0, 0, 0, 0.2);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.sidebar h3 {
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.sidebar a {
+    color: white;
+    text-decoration: none;
+    display: block;
+    padding: 10px;
+    margin: 5px 0;
+    background-color: #34495e;
+    border-radius: 5px;
+    text-align: center;
+    width: 100%;
+    margin-bottom: 10px;
+}
+
+.sidebar a:hover {
+    background-color: #1abc9c;
+}
+
+/* --- Selector de fecha en la barra lateral --- */
+.date-selector {
+    margin-top: 100px;
+    width: 100%;
+    text-align: center;
+}
+
+.date-selector label {
+    font-size: 14px;
+    margin-bottom: 10px;
+    display: block;
+}
+
+.date-selector select {
+    width: 100%;
+    padding: 8px;
+    margin-bottom: 10px;
+    border: none;
+    border-radius: 5px;
+    background-color: #34495e;
+    color: white;
+    text-align: center;
+}
+
+.date-selector select:focus {
+    outline: none;
+    background-color: #1abc9c;
+}
+
+.date-selector input[type="number"] {
+    width: 94%;
+    padding: 8px;
+    margin-bottom: 15px;
+    border: none;
+    border-radius: 5px;
+    background-color: #34495e;
+    color: white;
+    text-align: center;
+    font-size: 16px;
+}
+
+.date-selector input[type="number"]:focus {
+    outline: none;
+    background-color: #1abc9c;
+}
+
+.date-selector button {
+    background-color: #3498db;
+    color: white;
+    border: none;
+    padding: 10px;
+    border-radius: 5px;
+    cursor: pointer;
+    width: 100%;
+}
+
+.date-selector button:hover {
+    background-color: #2980b9;
+}
+
+/* --- Aumentar espacio entre el input de año y el botón de filtrar --- */
+.date-selector button {
+    margin-top: 20px;
+}
+
+/* --- Ajuste de la página con la barra lateral --- */
+.content {
+    margin-left: 270px;
+    flex: 1;
+    padding: 20px;
+}
+
+/* --- Encabezado --- */
+.main-header {
+    background-color: #2c3e50;
+    color: white;
+    text-align: center;
+    padding: 15px;
+    font-size: 24px;
+    font-weight: bold;
+    text-transform: uppercase;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    border-radius: 10px;
+    margin: 10px auto;
+    width: 90%;
+}
+
+/* --- Títulos centrados --- */
+h1:not(.main-header h1), h2 {
+    text-align: center;
+    color: #2c3e50;
+}
+
+h3 {
+    text-align: center;
+}
+
+/* --- Ajuste de la tabla de gastos --- */
+.table-container {
+    width: 50%;
+    margin: 20px auto;
+    border: #3498db 1px solid;
+    border-radius: 5px;
+    overflow: hidden;
+}
+
+.report-table{
+    width: 35%;
+    margin: 20px auto;
+    border: #3498db 1px solid;
+    border-radius: 5px;
+    overflow: hidden;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 15px;
+}
+
+th, td {
+    padding: 10px;
+    text-align: left;
+    border-bottom: 1px solid #ddd;
+}
+
+th {
+    background-color: #3498db;
+    color: white;
+}
+
+tr:nth-child(even) {
+    background-color: #f2f2f2;
+}
+
+p {
+    margin-left: 15px;
+}
+
+/* --- Total de gastos y presupuesto --- */
+.total-gastos, .presupuesto-restante {
+    font-size: 18px;
+    font-weight: bold;
+    margin-top: 15px;
+    text-align: center;
+}
+
+.presupuesto-restante.negative {
+    color: white;
+    background-color: red;
+    padding: 10px;
+    border-radius: 5px;
+    font-weight: bold;
+}
+
+img {
+    margin-left: 15px;
+}
+
+.cancel {
+    margin: 20px auto;
+    margin-bottom: -18px;
+    padding: 0px 20px;
+    width: 48px;
+    height: 48px;
+}
+
+button {
+    background-color: #3498db;
+    color: white;
+    border: none;
+    padding: 10px;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+/* --- Centrar el botón "Añadir gasto" --- */
+#toggleFormBtn {
+    display: block;
+    margin: 20px auto; /* Centra el botón horizontalmente */
+    margin-top: 100px;;
+    padding: 12px 20px;
+    font-size: 16px;
+    font-weight: bold;
+    text-align: center;
+    background-color: #3498db;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+#toggleFormBtn:hover {
+    background-color: #2980b9;
+}
+
+/* --- Centrar y estilizar el formulario --- */
+#addGastoForm {
+    width: 25%;
+    margin: 20px auto; /* Centra el formulario */
+    padding: 20px;
+    background: white;
+    box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);
+    border-radius: 10px;
+    text-align: center;
+}
+
+#addGastoForm label {
+    display: block;
+    text-align: left;
+    margin-left: 15px;
+    margin-top: 10px;
+    margin-bottom: 5px;
+    font-weight: bold;
+}
+
+#addGastoForm input {
+    width: 70%;
+    padding: 10px;
+    margin-bottom: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+}
+
+#addGastoForm select {
+    width: 74%;
+    padding: 10px;
+    margin-bottom: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+}
+
+#addGastoForm button {
+    margin-top: 20px;
+    width: 155px;
+    padding: 12px;
+    font-size: 16px;
+    font-weight: bold;
+    background-color: #27ae60;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+#addGastoForm button:hover {
+    background-color: #219150;
+}
+
+.form-container {
+    width: 50%;
+    margin: 20px auto; /* Centra el formulario */
+    padding: 20px;
+    background: white;
+    box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);
+    border-radius: 10px;
+    text-align: center;
+}
+
+.form-container label {
+    display: block;
+    text-align: left;
+    margin-bottom: 5px;
+    font-weight: bold;
+}
+
+.form-container input {
+    width: 85%;
+    padding: 10px;
+    margin-bottom: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+}
+
+.form-container select {
+    width: 90%;
+    padding: 10px;
+    margin-bottom: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+}
+
+.form-container button {
+    margin-top: 20px;
+    width: 170px;
+    padding: 12px;
+    font-size: 16px;
+    font-weight: bold;
+    background-color: #27ae60;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.form-container button:hover {
+    background-color: #219150;
+}
+
+.negativo {
+    color: red;
+    font-weight: bold;
+}
+
+.pie {
+    width: 30%;
+    margin: 20px auto;
+    margin-bottom: 100px;
+}
+
+.bar {
+    width: 50%;
+    margin: 10px auto;
+}
+
+.category-list {
+    list-style: none;
+    padding: 0;
+}
+
+.category-list li {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px;
+    border-bottom: 1px solid #ddd;
+}
+
+.delete-btn {
+    background-color: #ff4d4d;
+    color: white;
+    border: none;
+    padding: 5px 10px;
+    cursor: pointer;
+}
+
+#Categorias{
+    margin-top: 40px;
+}
+
+#toggleCategoriaBtn {
+    display: block;
+    margin: 20px auto; /* Centra el botón horizontalmente */
+    margin-top: 40px;
+    padding: 12px 20px;
+    font-size: 16px;
+    font-weight: bold;
+    text-align: center;
+    background-color: #3498db;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+#toggleCategoriaBtn:hover {
+    background-color: #2980b9;
+}
+
+#addCategoriaForm {
+    width: 25%;
+    margin: 20px auto; /* Centra el formulario */
+    padding: 20px;
+    background: white;
+    box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);
+    border-radius: 10px;
+    text-align: center;
+}
+
+#addCategoriaForm label {
+    display: block;
+    text-align: left;
+    margin-left: 15px;
+    margin-top: 10px;
+    margin-bottom: 5px;
+    font-weight: bold;
+}
+
+#addCategoriaForm input {
+    width: 70%;
+    padding: 10px;
+    margin-bottom: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+}
+
+#addCategoriaForm button {
+    margin-top: 15px;
+    width: 155px;
+    padding: 12px;
+    font-size: 16px;
+    font-weight: bold;
+    background-color: #27ae60;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+#addCategoriaForm button:hover {
+    background-color: #219150;
+}
+
+#togglePresupuestoBtn {
+    display: block;
+    margin-right: -150px; /* Centra el botón horizontalmente */
+    padding: 12px 20px;
+    font-size: 14px;
+    font-weight: bold;
+    text-align: center;
+    background-color: #3498db;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+#togglePresupuestoBtn:hover {
+    background-color: #2980b9;
+}
+
+
+#updatePresupuestoForm {
+    width: 25%;
+    margin: 20px auto; /* Centra el formulario */
+    padding: 20px;
+    background: white;
+    box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);
+    border-radius: 10px;
+    text-align: center;
+}
+
+#Presupuesto{
+    margin-top: 100px;
+}
+
+#updatePresupuestoForm label {
+    display: block;
+    text-align: left;
+    margin-left: 15px;
+    margin-top: 10px;
+    margin-bottom: 5px;
+    font-weight: bold;
+}
+
+#updatePresupuestoForm input {
+    width: 70%;
+    padding: 10px;
+    margin-bottom: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+}
+
+#updatePresupuestoForm button {
+    margin-top: 15px;
+    width: 155px;
+    padding: 12px;
+    font-size: 16px;
+    font-weight: bold;
+    background-color: #27ae60;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+#updatePresupuestoForm button:hover {
+    background-color: #219150;
+}
+
+.no-bg {
+    background: none;
+    border: none;
+    padding: 0;
+    cursor: pointer;
+}
+
+.no-bg img {
+    vertical-align: middle;
+    margin-right: -30px;
+}
+
+.spacer {
+    margin-top: 20px;
+}

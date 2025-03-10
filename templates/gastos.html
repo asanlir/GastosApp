@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Histórico Gastos</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+
+    <!-- Barra lateral -->
+    <div class="sidebar">
+        <h3>Menú</h3>
+        <a href="/">Inicio</a>
+        <a href="/report">Estadísticas</a>
+        <a href="/config">Configuración</a>
+
+        <!-- Selector de fecha en la barra lateral -->
+        <div class="date-selector">
+            <form action="/gastos" method="POST">
+                <label for="mes">Mes:</label>
+                <select name="mes" id="mes">
+                    <option value="">Todos</option>
+                    {% for mes in ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", 
+                                "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"] %}
+                        <option value="{{ mes }}" {% if filtros.mes == mes %}selected{% endif %}>{{ mes }}</option>
+                    {% endfor %}
+                </select>
+
+                <label for="anio">Año:</label>
+                <select name="anio" id="anio">
+                    <option value="">Todos</option>
+                    {% for anio in range(2025, 2051) %}
+                        <option value="{{ anio }}" {% if filtros.anio == anio %}selected{% endif %}>{{ anio }}</option>
+                    {% endfor %}
+                </select>
+
+                <br>
+
+                <label for="categoria">Categoría:</label>
+                <select name="categoria" id="categoria">
+                    <option value="">Todas</option>
+                    {% for categoria in categorias %}
+                        <option value="{{ categoria }}" {% if filtros.categoria == categoria %}selected{% endif %}>{{ categoria }}</option>
+                    {% endfor %}
+                </select>
+
+                <button type="submit">Filtrar</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Contenedor principal con margen para la barra lateral -->
+    <div class="content">
+
+        <!-- Encabezado principal -->
+        <header class="main-header">
+            <h1>Seguimiento cuentas Pino</h1>
+        </header>    
+
+        <h1>Histórico de Gastos</h1>
+
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Categoría</th>
+                        <th>Descripción</th>
+                        <th>Monto (€)</th>
+                        <th>Mes</th>
+                        <th>Año</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for gasto in gastos %}
+                    <tr>
+                        <td>{{ gasto.categoria }}</td>
+                        <td>{{ gasto.descripcion }}</td>
+                        <td>{{ gasto.monto }}</td>
+                        <td>{{ gasto.mes }}</td>
+                        <td>{{ gasto.anio }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+</body>
+</html>

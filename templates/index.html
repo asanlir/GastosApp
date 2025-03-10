@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Control de Gastos</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+
+    <!-- Barra lateral -->
+    <div class="sidebar">
+        <h3>Menú</h3>
+        <a href="/">Inicio</a>
+        <a href="/report">Estadísticas</a>
+        <a href="/gastos">Histórico</a>
+        <a href="/config">Configuración</a>
+
+        <!-- Selector de fecha en la barra lateral -->
+        <div class="date-selector">
+            <form action="/" method="post">
+                <label for="mes">Mes:</label>
+                <select name="mes" id="mes">
+                    <option value="Enero" {% if mes_actual == 'Enero' %}selected{% endif %}>Enero</option>
+                    <option value="Febrero" {% if mes_actual == 'Febrero' %}selected{% endif %}>Febrero</option>
+                    <option value="Marzo" {% if mes_actual == 'Marzo' %}selected{% endif %}>Marzo</option>
+                    <option value="Abril" {% if mes_actual == 'Abril' %}selected{% endif %}>Abril</option>
+                    <option value="Mayo" {% if mes_actual == 'Mayo' %}selected{% endif %}>Mayo</option>
+                    <option value="Junio" {% if mes_actual == 'Junio' %}selected{% endif %}>Junio</option>
+                    <option value="Julio" {% if mes_actual == 'Julio' %}selected{% endif %}>Julio</option>
+                    <option value="Agosto" {% if mes_actual == 'Agosto' %}selected{% endif %}>Agosto</option>
+                    <option value="Septiembre" {% if mes_actual == 'Septiembre' %}selected{% endif %}>Septiembre</option>
+                    <option value="Octubre" {% if mes_actual == 'Octubre' %}selected{% endif %}>Octubre</option>
+                    <option value="Noviembre" {% if mes_actual == 'Noviembre' %}selected{% endif %}>Noviembre</option>
+                    <option value="Diciembre" {% if mes_actual == 'Diciembre' %}selected{% endif %}>Diciembre</option>
+                </select>
+
+                <label for="anio">Año:</label>
+                <input type="number" name="anio" id="anio" value="{{ anio_actual }}" required>
+
+                <button type="submit">Filtrar</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Contenedor principal con margen para la barra lateral -->
+    <div class="content">
+
+        <!-- Encabezado principal -->
+        <header class="main-header">
+            <h1>Seguimiento cuentas Pino</h1>
+        </header>    
+
+        <h1>Control de Gastos {{ mes_actual }} {{ anio_actual }} </h1>
+
+        <!-- Mostrar la lista de gastos -->
+        <div class="table-container">
+            {% if gastos %}
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Categoría</th>
+                            <th>Descripción</th>
+                            <th>Monto</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for gasto in gastos %}
+                        <tr>
+                            <td>{{ gasto.categoria }}</td>
+                            <td>{{ gasto.descripcion }}</td>
+                            <td>{{ gasto.monto }} €</td>
+                            <td>
+                                <a href="{{ url_for('edit_gasto', id=gasto.id, mes=mes, anio=anio) }}" class="btn btn-warning">
+                                    <img src="{{ url_for('static', filename='editar.png') }}" width="23" height="23" alt="Editar"></a>
+                                <a href="{{ url_for('delete_gasto', id=gasto.id, mes=mes, anio=anio) }}" class="btn btn-danger" onclick="return confirm('¿Seguro que quieres eliminar este gasto?');">
+                                    <img src="{{ url_for('static', filename='eliminar.png') }}" width="23" height="23" alt="Eliminar"></a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            {% else %}
+                <p>No hay gastos registrados para este mes.</p>
+            {% endif %}
+
+            <!-- Total de gastos debajo de la tabla -->
+            <p><strong>Total de gastos:</strong> {{ total_gastos }} €</p>
+
+            <!-- Presupuesto restante -->
+            <p><strong>Presupuesto restante:</strong> 
+                <span {% if presupuesto_mensual - total_gastos < 0 %} style="color: red;" {% endif %}>
+                    {{ presupuesto_mensual - total_gastos }} €
+                </span>
+            </p>
+        </div>
+
+        <!-- Botón para mostrar/ocultar formulario -->
+        <button id="toggleFormBtn">Añadir Gasto</button>
+
+        <!-- Formulario oculto -->
+        <div id="addGastoForm" style="display: none;">
+            <form action="/" method="POST">
+                <label for="categoria">Categoría:</label>
+                <select name="categoria" required>
+                    {% for categoria in categorias %}
+                        <option value="{{ categoria.id }}">{{ categoria.nombre }}</option>
+                    {% endfor %}
+                </select>
+                <br>
+
+                <label for="descripcion">Descripción:</label>
+                <input type="text" name="descripcion">
+                <br>
+
+                <label for="monto">Monto:</label>
+                <input type="number" name="monto" step="0.01" required>
+                <br>
+
+                <label for="mes">Mes:</label>
+                <select name="mes" id="mes">
+                    <option value="Enero" {% if mes_actual == 'Enero' %}selected{% endif %}>Enero</option>
+                    <option value="Febrero" {% if mes_actual == 'Febrero' %}selected{% endif %}>Febrero</option>
+                    <option value="Marzo" {% if mes_actual == 'Marzo' %}selected{% endif %}>Marzo</option>
+                    <option value="Abril" {% if mes_actual == 'Abril' %}selected{% endif %}>Abril</option>
+                    <option value="Mayo" {% if mes_actual == 'Mayo' %}selected{% endif %}>Mayo</option>
+                    <option value="Junio" {% if mes_actual == 'Junio' %}selected{% endif %}>Junio</option>
+                    <option value="Julio" {% if mes_actual == 'Julio' %}selected{% endif %}>Julio</option>
+                    <option value="Agosto" {% if mes_actual == 'Agosto' %}selected{% endif %}>Agosto</option>
+                    <option value="Septiembre" {% if mes_actual == 'Septiembre' %}selected{% endif %}>Septiembre</option>
+                    <option value="Octubre" {% if mes_actual == 'Octubre' %}selected{% endif %}>Octubre</option>
+                    <option value="Noviembre" {% if mes_actual == 'Noviembre' %}selected{% endif %}>Noviembre</option>
+                    <option value="Diciembre" {% if mes_actual == 'Diciembre' %}selected{% endif %}>Diciembre</option>
+                </select>
+                <br>
+
+                <label for="anio">Año:</label>
+                <input type="number" name="anio" value="{{ anio_actual }}" required>
+                <br>
+
+                <button type="submit">Guardar Gasto</button>
+            </form>
+        </div>
+
+        <!-- JavaScript para mostrar/ocultar formulario -->
+        <script>
+            document.getElementById("toggleFormBtn").addEventListener("click", function() {
+                var form = document.getElementById("addGastoForm");
+                form.style.display = (form.style.display === "none") ? "block" : "none";
+            });
+        </script>
+
+    </div>
+
+</body>
+</html>

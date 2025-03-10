@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Configuración</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+    <div class="sidebar">
+        <h3>Menú</h3>
+        <a href="/">Inicio</a>
+        <a href="/report">Estadísticas</a>
+        <a href="/gastos">Histórico</a>
+    </div>
+
+    <div class="content centered">
+        <header class="main-header">
+            <h1>Configuración</h1>
+        </header>    
+
+        <h2 id="Categorias">Gestión de Categorías</h2>
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th class="center-text">Categoría</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for categoria in categorias %}
+                    <tr>
+                        <td class="center-text">{{ categoria.nombre }}</td>
+                        <td>
+                            <form method="POST" style="display:inline;">
+                                <input type="hidden" name="eliminar_categoria" value="{{ categoria.id }}">
+                                <button type="submit" class="btn btn-danger no-bg">
+                                    <img src="{{ url_for('static', filename='eliminar.png') }}" width="23" height="23" alt="Eliminar">
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <button id="toggleCategoriaBtn">Añadir Categoría</button>
+        <div id="addCategoriaForm" style="display: none;" class="spacer">
+            <form method="POST">
+                <input type="text" name="nueva_categoria" placeholder="Nueva categoría" required>
+                <button type="submit">Guardar</button>
+            </form>
+        </div>
+
+        <h2 id="Presupuesto">Presupuesto Mensual</h2>
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th class="center-text">Presupuesto Actual</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td class="center-text"><strong>{{ presupuesto_actual }} €</strong></td>
+                        <td>
+                            <button id="togglePresupuestoBtn">Actualizar Presupuesto</button>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div id="updatePresupuestoForm" style="display: none;" class="spacer">
+            <form method="POST">
+                <input type="number" name="presupuesto_mensual" placeholder="Nuevo presupuesto" required step="0.01">
+                <button type="submit">Guardar</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById("toggleCategoriaBtn").addEventListener("click", function() {
+            var form = document.getElementById("addCategoriaForm");
+            form.style.display = (form.style.display === "none") ? "block" : "none";
+        });
+
+        document.getElementById("togglePresupuestoBtn").addEventListener("click", function() {
+            var form = document.getElementById("updatePresupuestoForm");
+            form.style.display = (form.style.display === "none") ? "block" : "none";
+        });
+    </script>
+</body>
+</html>
