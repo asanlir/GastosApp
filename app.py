@@ -5,6 +5,7 @@ from flask import Flask, render_template, request, redirect, url_for, flash
 import pandas as pd
 import plotly.graph_objects as go
 from dotenv import load_dotenv
+import webbrowser
 
 
 # Cargar variables de entorno desde .env
@@ -35,7 +36,7 @@ except mysql.connector.Error as err:
 def index():
     # Obtener la fecha actual
     meses = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio",
-        "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"]
+            "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"]
     mes_actual = request.args.get("mes", meses[datetime.now().month - 1])
     anio_actual = request.args.get("anio", datetime.now().year, type=int)
 
@@ -79,18 +80,20 @@ def index():
         else:
             try:
                 # Obtener el nombre real de la categoría (evita que se guarde un valor incorrecto)
-                cursor.execute("SELECT nombre FROM categorias WHERE id = %s;", (categoria,))
+                cursor.execute(
+                    "SELECT nombre FROM categorias WHERE id = %s;", (categoria,))
                 categoria_result = cursor.fetchone()
 
                 if categoria_result:
                     categoria = categoria_result["nombre"]
                 else:
                     categoria = "Sin categoría"  # Si no existe, evitar errores
-                
+
                 # Insertar datos en la base de datos
                 query = """INSERT INTO gastos (categoria, descripcion, monto, mes, anio)
                         VALUES (%s, %s, %s, %s, %s);"""
-                cursor.execute(query, (categoria, descripcion, float(monto), mes, int(anio)))
+                cursor.execute(query, (categoria, descripcion,
+                            float(monto), mes, int(anio)))
 
                 # Confirmar cambios
                 conn.commit()
@@ -104,7 +107,8 @@ def index():
     # Si se está filtrando por mes y año
     if request.method == "POST" and "mes" in request.form:
         mes_actual = request.form["mes"]
-        anio_actual = int(request.form["anio"]) if request.form["anio"] else anio_actual
+        anio_actual = int(
+            request.form["anio"]) if request.form["anio"] else anio_actual
         return redirect(url_for('index', mes=mes_actual, anio=anio_actual))
 
     # Conectar a la base de datos
@@ -131,16 +135,34 @@ def index():
     # Calcular la suma de los gastos
     total_gastos = sum(gasto['monto'] for gasto in gastos)
 
+    # Obtener el total de gastos del año hasta el mes actual
+    cursor.execute("""
+        SELECT SUM(monto) AS total_gastos 
+        FROM gastos 
+        WHERE anio = %s 
+        AND FIELD(mes, 'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 
+                    'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre') 
+            <= FIELD(%s, 'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 
+                    'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre');
+        """,
+        (anio_actual, mes_actual))
+    total_gastos_anual = cursor.fetchone()["total_gastos"] or 0
+
+    meses_transcurridos = meses.index(mes_actual) + 1
+    presupuesto_total_acumulado = presupuesto_mensual * meses_transcurridos
+    acumulado_presupuesto = presupuesto_total_acumulado - total_gastos_anual
+
     cursor.close()
     conn.close()
 
     # Renderizar la plantilla
     return render_template(
-        "index.html", 
+        "index.html",
         categorias=categorias,
         gastos=gastos,
         total_gastos=total_gastos,
         presupuesto_mensual=presupuesto_mensual,
+        acumulado_presupuesto=acumulado_presupuesto,
         mes_actual=mes_actual,
         anio_actual=anio_actual
     )
@@ -193,7 +215,7 @@ def edit_gasto(id):
                     SET categoria = %s, descripcion = %s, monto = %s
                     WHERE id = %s;
                     """,
-                    (categoria, descripcion, monto, id))
+                       (categoria, descripcion, monto, id))
         conn.commit()
 
         cursor.close()
@@ -270,7 +292,7 @@ def ver_gastos():
 def report():
     # Obtener el mes y año seleccionados (o usar los valores actuales por defecto)
     meses = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio",
-        "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"]
+             "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"]
     mes_actual = meses[datetime.now().month - 1]
     anio_actual = datetime.now().year
 
@@ -317,12 +339,13 @@ def report():
 
     # Crear un gráfico de torta con Plotly
     if gastos_por_categoria:
-        #gastos_por_categoria = sorted(gastos_mes, key=lambda x: x['categoria'])
+        # gastos_por_categoria = sorted(gastos_mes, key=lambda x: x['categoria'])
         categorias = [gasto['categoria'] for gasto in gastos_por_categoria]
         montos = [gasto['total'] for gasto in gastos_por_categoria]
-        fig_pie = go.Figure(data=[go.Pie(labels=categorias, values=montos, sort=False)])
+        fig_pie = go.Figure(
+            data=[go.Pie(labels=categorias, values=montos, sort=False)])
     else:
-        fig_pie = None # Evita errores si no hay gastos
+        fig_pie = None  # Evita errores si no hay gastos
 
     # Obtener los datos para los gráficos de barras apiladas
     cursor.execute("""
@@ -332,13 +355,14 @@ def report():
                 GROUP BY anio, mes, categoria, descripcion
                 ORDER BY anio ASC, FIELD(mes, %s);""",
                 (",".join(meses),)
-            )
+                )
 
     datos_historico = cursor.fetchall()
     conn.close()
 
     # Crear un DataFrame de Pandas con los datos
-    df = pd.DataFrame(datos_historico, columns=["anio", "mes", "categoria", "descripcion", "total"])
+    df = pd.DataFrame(datos_historico, columns=[
+                    "anio", "mes", "categoria", "descripcion", "total"])
 
     # Crear un DataFrame con todos los meses del año actual
     df_fechas = pd.DataFrame({
@@ -354,7 +378,8 @@ def report():
     df = df.sort_values(["anio", "mes"])
 
     # Crear la columna orden_fecha en formato "Enero 2025"
-    df["orden_fecha"] = df.apply(lambda row: f"{row['mes']} {row['anio']}", axis=1)
+    df["orden_fecha"] = df.apply(
+        lambda row: f"{row['mes']} {row['anio']}", axis=1)
 
     # GRÁFICAS DE BARRAS APILADAS los últimos 12 meses
     def crear_grafico_barras(categoria):
@@ -364,23 +389,26 @@ def report():
         meses_completos = df['orden_fecha'].unique()
 
         # Obtener TODAS las descripciones posibles de esta categoría en cualquier mes
-        orden_descripciones = sorted(df[df['categoria'] == categoria]['descripcion'].unique())
+        orden_descripciones = sorted(
+            df[df['categoria'] == categoria]['descripcion'].unique())
 
         fig = go.Figure()
 
         # Ordenamos los conceptos de acuerdo a la aparición en el dataset
         for descripcion in orden_descripciones:
-            df_desc = df_categoria[df_categoria['descripcion'] == descripcion].copy()
+            df_desc = df_categoria[df_categoria['descripcion']
+                                == descripcion].copy()
 
             # Crear un DataFrame vacío con todos los meses y unirlo a los datos existentes
             df_meses_vacios = pd.DataFrame({"orden_fecha": meses_completos})
-            df_desc = pd.merge(df_meses_vacios, df_desc, on="orden_fecha", how="left").fillna({"total": 0})
+            df_desc = pd.merge(df_meses_vacios, df_desc,
+                            on="orden_fecha", how="left").fillna({"total": 0})
 
             fig.add_trace(go.Bar(
                 x=df_desc['orden_fecha'],
                 y=df_desc['total'],
                 name=descripcion,
-                visible=True, # Asegura que se rendericen todas las barras
+                visible=True,  # Asegura que se rendericen todas las barras
                 hovertemplate=f"{descripcion} " + "%{y:.2f}€<extra></extra>"
             ))
 
@@ -398,6 +426,16 @@ def report():
     fig_facturas = crear_grafico_barras("Facturas").to_html(full_html=False)
     fig_gasolina = crear_grafico_barras("Gasolina").to_html(full_html=False)
 
+    # Gráficas de barras para el total de gastos a lo largo del año
+    fig_total = go.Figure()  # Crear una nueva figura
+    fig_total.add_trace(go.Bar(x=df['orden_fecha'], y=df['total'],
+                        name='Total', hovertemplate="%{y:.2f}€<extra></extra>"))
+    fig_total.update_layout(
+        title="Total de gastos a lo largo del año",
+        yaxis_title="Monto (€)",
+        xaxis=dict(type='category', tickangle=-30)
+    )
+
     # Renderizar la plantilla con los gráficos
     return render_template("report.html",
                         total_gastos=total_gastos if gastos_mes else 0,
@@ -408,7 +446,9 @@ def report():
                         fig_pie=fig_pie.to_html(full_html=False) if fig_pie else None,
                         fig_facturas=fig_facturas,
                         fig_gasolina=fig_gasolina,
-                        fig_compras=fig_compras)
+                        fig_compras=fig_compras,
+                        fig_total=fig_total.to_html(full_html=False)
+                        )
 
 
 @app.route("/config", methods=["GET", "POST"])
@@ -419,7 +459,7 @@ def config():
 
     # Obtener la fecha actual
     meses = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio",
-        "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"]
+            "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"]
     mes_actual = request.args.get("mes", meses[datetime.now().month - 1])
     anio_actual = request.args.get("anio", datetime.now().year, type=int)
 
@@ -428,13 +468,15 @@ def config():
             nueva_categoria = request.form["nueva_categoria"].strip()
 
             if nueva_categoria:
-                cursor.execute("INSERT INTO categorias (nombre) VALUES (%s);", (nueva_categoria,))
+                cursor.execute(
+                    "INSERT INTO categorias (nombre) VALUES (%s);", (nueva_categoria,))
                 conn.commit()
                 flash("Categoría agregada correctamente", "success")
 
         elif "eliminar_categoria" in request.form:
             categoria_id = request.form["eliminar_categoria"]
-            cursor.execute("DELETE FROM categorias WHERE id = %s;", (categoria_id,))
+            cursor.execute(
+                "DELETE FROM categorias WHERE id = %s;", (categoria_id,))
             conn.commit()
             flash("Categoría eliminada correctamente", "success")
 
@@ -456,7 +498,8 @@ def config():
                     flash("Presupuesto actualizado correctamente", "success")
 
                 except ValueError:
-                    flash("Por favor, introduce un valor numérico válido para el presupuesto", "error")
+                    flash(
+                        "Por favor, introduce un valor numérico válido para el presupuesto", "error")
 
     # Obtener lista de categorías
     cursor.execute("SELECT * FROM categorias ORDER BY nombre ASC;")
@@ -487,6 +530,17 @@ def config():
     return render_template("config.html", categorias=categorias, presupuesto_actual=presupuesto_actual)
 
 
+# Abrir la app directamente en el navegador
+def abrir_navegador():
+    url = "http://127.0.0.1:5000"
+    webbrowser.open(url)
+
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=5000, debug=False)
+    # Iniciar la aplicación en un hilo separado para no bloquear el proceso
+    from threading import Thread
+    thread = Thread(target=app.run, kwargs={'debug': True, 'use_reloader': False})
+    thread.start()
+    
+    # Abrir el navegador automáticamente
+    abrir_navegador()

@@ -94,6 +94,12 @@
                     {{ presupuesto_mensual - total_gastos }} €
                 </span>
             </p>
+
+            <p><strong>Acumulado:</strong> 
+                <span {% if acumulado_presupuesto < 0 %} style="color: red;" {% endif %}>
+                    {{ acumulado_presupuesto }} €
+                </span>
+            </p>
         </div>
 
         <!-- Botón para mostrar/ocultar formulario -->

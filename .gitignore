@@ -7,3 +7,6 @@ __pycache__/
 *.exe
 *.spec
 .build/app/
+.qodo
+*.ico
+.build/
