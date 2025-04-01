@@ -1,11 +1,12 @@
 import os
 from datetime import datetime
+import webbrowser
 import mysql.connector
 from flask import Flask, render_template, request, redirect, url_for, flash
+import numpy as np
 import pandas as pd
 import plotly.graph_objects as go
 from dotenv import load_dotenv
-import webbrowser
 
 
 # Cargar variables de entorno desde .env
@@ -292,7 +293,7 @@ def ver_gastos():
 def report():
     # Obtener el mes y año seleccionados (o usar los valores actuales por defecto)
     meses = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio",
-             "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"]
+            "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"]
     mes_actual = meses[datetime.now().month - 1]
     anio_actual = datetime.now().year
 
@@ -339,7 +340,6 @@ def report():
 
     # Crear un gráfico de torta con Plotly
     if gastos_por_categoria:
-        # gastos_por_categoria = sorted(gastos_mes, key=lambda x: x['categoria'])
         categorias = [gasto['categoria'] for gasto in gastos_por_categoria]
         montos = [gasto['total'] for gasto in gastos_por_categoria]
         fig_pie = go.Figure(
@@ -358,7 +358,17 @@ def report():
                 )
 
     datos_historico = cursor.fetchall()
-    conn.close()
+
+    # Obtener los datos para el gráfico de barras que excluye el alquiler
+    cursor.execute("""
+                SELECT anio, mes, SUM(monto) AS total_sin_alquiler
+                FROM gastos
+                WHERE categoria != 'Alquiler'
+                GROUP BY anio, mes
+                ORDER BY anio ASC, FIELD(mes, %s);""",
+                (",".join(meses),)
+                )
+    datos_sin_alquiler = cursor.fetchall()
 
     # Crear un DataFrame de Pandas con los datos
     df = pd.DataFrame(datos_historico, columns=[
@@ -414,10 +424,9 @@ def report():
 
         fig.update_layout(
             barmode='stack',
-            title=f"Gastos de {categoria}",
+            title=f"Gastos {categoria}",
             yaxis_title="Monto (€)",
             xaxis=dict(type='category', tickangle=-30),
-            legend_title="Conceptos dentro de la categoría"
         )
         return fig
 
@@ -426,12 +435,87 @@ def report():
     fig_facturas = crear_grafico_barras("Facturas").to_html(full_html=False)
     fig_gasolina = crear_grafico_barras("Gasolina").to_html(full_html=False)
 
-    # Gráficas de barras para el total de gastos a lo largo del año
-    fig_total = go.Figure()  # Crear una nueva figura
-    fig_total.add_trace(go.Bar(x=df['orden_fecha'], y=df['total'],
-                        name='Total', hovertemplate="%{y:.2f}€<extra></extra>"))
-    fig_total.update_layout(
-        title="Total de gastos a lo largo del año",
+    # GRÁFICO DE BARRAS TOTAL GASTOS SIN ALQUILER
+    # Crear DataFrame con los datos reales
+    df_sin_alquiler = pd.DataFrame(datos_sin_alquiler, columns=["anio", "mes", "total_sin_alquiler"])
+
+    # Unir los datos con todos los meses y llenar con 0 los meses sin datos
+    df_sin_alquiler = df_fechas.merge(df_sin_alquiler, on=["anio", "mes"], how="left").fillna({"total_sin_alquiler": 0})
+
+    # Crear la columna orden_fecha en formato "Enero 2025"
+    df_sin_alquiler["orden_fecha"] = df_sin_alquiler.apply(
+        lambda row: f"{row['mes']} {row['anio']}", axis=1)
+
+    # Asegurar que los meses están ordenados correctamente
+    df_sin_alquiler["mes"] = pd.Categorical(df_sin_alquiler['mes'], categories=meses, ordered=True)
+    df_sin_alquiler = df_sin_alquiler.sort_values(["anio", "mes"])
+
+    # Obtener el gasto total (incluyendo alquiler) para la comparación
+    cursor.execute("""
+                SELECT anio, mes, SUM(monto) AS total_con_alquiler
+                FROM gastos
+                GROUP BY anio, mes
+                ORDER BY anio ASC, FIELD(mes, %s);
+                """,
+                (",".join(meses),))
+
+    datos_con_alquiler = cursor.fetchall()
+
+    cursor.close()
+    conn.close()
+
+    df_con_alquiler = pd.DataFrame(
+                        datos_con_alquiler,
+                        columns=["anio", "mes", "total_con_alquiler"]
+                        )
+
+    # Unir los datos con el DataFrame de comparación
+    df_comparacion = df_sin_alquiler.merge(df_con_alquiler, on=["anio", "mes"], how="left")
+
+    # Llenar con 0 solo las columnas numéricas
+    df_comparacion["total_sin_alquiler"] = df_comparacion["total_sin_alquiler"].fillna(0)
+    df_comparacion["total_con_alquiler"] = df_comparacion["total_con_alquiler"].fillna(0).astype(float)
+
+    # Cálculo del saldo presupuestario acumulado
+    df_comparacion["presupuesto_mensual"] = presupuesto_mensual
+    df_comparacion["presupuesto_acumulado"] = df_comparacion["presupuesto_mensual"].cumsum()
+    df_comparacion["gasto_acumulado"] = df_comparacion["total_con_alquiler"].cumsum()
+
+    # Solo calcular saldo_presupuestario en meses con gastos
+    df_comparacion["saldo_presupuestario"] = np.where(
+        df_comparacion["total_con_alquiler"] > 0,
+        df_comparacion["presupuesto_acumulado"].astype(float) - df_comparacion["gasto_acumulado"],
+        np.nan
+    )
+
+    # Crear gráfico
+    fig_sin_alquiler = go.Figure()
+
+    # Colores de las barras según si el gasto supera el presupuesto mensual
+    colores = ["red" if total > presupuesto_mensual else "green" for total in df_comparacion["total_con_alquiler"]]
+    
+    fig_sin_alquiler.add_trace(go.Bar(
+                                x=df_comparacion['orden_fecha'],
+                                y=df_comparacion['total_sin_alquiler'],
+                                name='Total Gastos',
+                                hovertemplate="%{y:.2f}€<extra></extra>",
+                                showlegend=False,
+                                marker_color=colores))
+
+    # Agregar línea de saldo presupuestario acumulado
+    fig_sin_alquiler.add_trace(go.Scatter(
+        x=df_comparacion['orden_fecha'],
+        y=df_comparacion['saldo_presupuestario'],
+        mode='lines+markers',
+        name='Saldo Presupuestario',
+        line=dict(color='blue', width=2),
+        marker=dict(size=6, symbol="circle"),
+        showlegend=False,
+        hovertemplate="%{y:.2f}€<extra></extra>"
+    ))
+
+    fig_sin_alquiler.update_layout(
+        title="Total Gastos y Saldo Presupuestario",
         yaxis_title="Monto (€)",
         xaxis=dict(type='category', tickangle=-30)
     )
@@ -447,7 +531,7 @@ def report():
                         fig_facturas=fig_facturas,
                         fig_gasolina=fig_gasolina,
                         fig_compras=fig_compras,
-                        fig_total=fig_total.to_html(full_html=False)
+                        fig_sin_alquiler=fig_sin_alquiler.to_html(full_html=False)
                         )
 
 
@@ -541,6 +625,6 @@ if __name__ == "__main__":
     from threading import Thread
     thread = Thread(target=app.run, kwargs={'debug': True, 'use_reloader': False})
     thread.start()
-    
+
     # Abrir el navegador automáticamente
     abrir_navegador()
