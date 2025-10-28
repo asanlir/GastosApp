@@ -6,6 +6,15 @@ import plotly.graph_objects as go
 from typing import List, Dict, Optional, Any
 
 from ..database import cursor_context
+from app.constants import MESES
+from app.utils_df import (
+    get_months as get_months_util,
+    set_month_order,
+    ensure_all_months,
+    df_from_rows,
+    to_plot_html,
+    ffill_by_month_inplace,
+)
 from app.queries import (
     q_gastos_por_categoria_mes,
     q_gasolina_por_mes,
@@ -16,9 +25,8 @@ from app.queries import (
 
 
 def get_months() -> List[str]:
-    """Returns the list of months in Spanish."""
-    return ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio",
-            "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"]
+    """Returns the list of months in Spanish (delegated to constants)."""
+    return MESES
 
 
 def generate_pie_chart(mes: str, anio: int) -> Optional[str]:
@@ -35,32 +43,20 @@ def generate_pie_chart(mes: str, anio: int) -> Optional[str]:
         fig = go.Figure(
             data=[go.Pie(labels=categorias, values=montos, sort=False)])
 
-        return fig.to_html(full_html=False)
+    return to_plot_html(fig)
 
 
 def generate_gas_chart(anio: int) -> str:
     """Generate simple bar chart for gas expenses for a specific year."""
     meses = get_months()
 
-    with cursor_context() as (_, cursor):
+    with cursor_context() as ((_, cursor)):
         cursor.execute(q_gasolina_por_mes(), (anio,))
         datos_gasolina = cursor.fetchall()
 
-    # Crear dataframe con todos los meses del año
-    df = pd.DataFrame({
-        "mes": meses,
-        "total": [0] * 12
-    })
-
-    # Añadir datos existentes
-    if datos_gasolina:
-        df_datos = pd.DataFrame(datos_gasolina)
-        df = df.merge(df_datos, on="mes", how="left")
-        df["total"] = df["total_y"].fillna(df["total_x"])
-
-    # Ordenar meses
-    df["mes"] = pd.Categorical(df["mes"], categories=meses, ordered=True)
-    df = df.sort_values("mes")
+    # DataFrame con todos los meses y totales (rellena 0 si faltan)
+    df = ensure_all_months(df_from_rows(datos_gasolina),
+                           month_col="mes", value_cols=["total"])
 
     fig = go.Figure()
     fig.add_trace(go.Bar(
@@ -79,7 +75,7 @@ def generate_gas_chart(anio: int) -> str:
         showlegend=False
     )
 
-    return fig.to_html(full_html=False)
+    return to_plot_html(fig)
 
 
 def generate_category_bar_chart(categoria: str, anio: int) -> str:
@@ -104,7 +100,7 @@ def generate_category_bar_chart(categoria: str, anio: int) -> str:
     })
 
     df = df_fechas.merge(df, on=["anio", "mes"], how="left").fillna(0)
-    df["mes"] = pd.Categorical(df['mes'], categories=meses, ordered=True)
+    set_month_order(df, "mes")
     df = df.sort_values(["anio", "mes"])
     df["orden_fecha"] = df.apply(
         lambda row: f"{row['mes']} {row['anio']}", axis=1)
@@ -136,7 +132,7 @@ def generate_category_bar_chart(categoria: str, anio: int) -> str:
         xaxis=dict(type='category', tickangle=-30),
     )
 
-    return fig.to_html(full_html=False)
+    return to_plot_html(fig)
 
 
 def generate_comparison_chart(anio: int) -> Dict[str, Any]:
@@ -176,9 +172,9 @@ def generate_comparison_chart(anio: int) -> Dict[str, Any]:
                                   "mes", "presupuesto_mensual"])
     df = df.merge(df_presupuesto, on=["mes"], how="left")
 
-    # Asegurar que tenemos un presupuesto para cada mes (usar el último conocido si falta)
-    df["presupuesto_mensual"] = df["presupuesto_mensual"].fillna(
-        df["presupuesto_mensual"].iloc[0] if not df["presupuesto_mensual"].empty else 0)
+    # Asegurar presupuesto para cada mes: forward-fill por orden de mes
+    ffill_by_month_inplace(df, "presupuesto_mensual", month_col="mes")
+    df["presupuesto_mensual"] = df["presupuesto_mensual"].fillna(0)
 
     # Calcular métricas
     df["excede_presupuesto"] = df["total_sin_alquiler"] > df["presupuesto_mensual"]
@@ -187,7 +183,7 @@ def generate_comparison_chart(anio: int) -> Dict[str, Any]:
     df["saldo_acumulado"] = df["saldo_mensual"].cumsum()
 
     # Ordenar meses
-    df["mes"] = pd.Categorical(df["mes"], categories=meses, ordered=True)
+    set_month_order(df, "mes")
     df = df.sort_values("mes")
 
     # Crear gráfico
@@ -223,6 +219,6 @@ def generate_comparison_chart(anio: int) -> Dict[str, Any]:
     )
 
     return {
-        "chart": fig.to_html(full_html=False),
+        "chart": to_plot_html(fig),
         "df_comparacion": df
     }

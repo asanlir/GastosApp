@@ -22,8 +22,8 @@ LEGACY_ROUTES = [
 
 @main_bp.route('/', methods=['GET', 'POST'])
 def index():
-    meses = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio",
-             "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"]
+    # Usar la fuente única de meses desde charts_service/constants
+    meses = charts_service.get_months()
     mes_actual = request.args.get("mes", meses[datetime.now().month - 1])
     anio_actual = request.args.get("anio", datetime.now().year, type=int)
 

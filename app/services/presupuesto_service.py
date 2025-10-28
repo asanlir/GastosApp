@@ -2,7 +2,9 @@
 Servicio que maneja la lógica de negocio relacionada con los presupuestos.
 """
 from typing import Optional, Dict, Any
+from app.constants import MESES
 from app.database import cursor_context
+from app.utils_df import decimal_to_float
 from app.queries import (
     q_presupuesto_vigente,
     q_historial_presupuestos,
@@ -27,8 +29,8 @@ def get_presupuesto_mensual(mes: str, anio: int) -> float:
     """
     with cursor_context() as (_, cursor):
         cursor.execute(q_presupuesto_vigente(), (anio, anio, mes))
-        presupuesto_result = cursor.fetchone()
-        return float(presupuesto_result["monto"]) if presupuesto_result else 0.0
+    presupuesto_result = cursor.fetchone()
+    return decimal_to_float(presupuesto_result["monto"]) if presupuesto_result else 0.0
 
 
 def get_historial_presupuestos() -> Dict[str, Any]:
@@ -86,8 +88,7 @@ def calcular_acumulado(mes: str, anio: int) -> float:
     Returns:
         Monto acumulado del presupuesto
     """
-    meses = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio",
-             "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"]
+    meses = MESES
 
     meses_transcurridos = meses.index(mes) + 1
     presupuesto_mensual = get_presupuesto_mensual(mes, anio)
@@ -96,8 +97,8 @@ def calcular_acumulado(mes: str, anio: int) -> float:
         # Obtener total de gastos hasta el mes actual
         cursor.execute(q_sum_gastos_hasta_mes(), (anio, mes))
         row = cursor.fetchone()
-        total_val = row["total_gastos"] if row and row["total_gastos"] else 0.0
-        total_gastos_anual = float(total_val)
+    total_val = row["total_gastos"] if row and row["total_gastos"] else 0.0
+    total_gastos_anual = decimal_to_float(total_val)
 
     presupuesto_total_acumulado = presupuesto_mensual * meses_transcurridos
     return presupuesto_total_acumulado - total_gastos_anual

@@ -3,6 +3,7 @@ Servicio que maneja la lógica de negocio relacionada con los gastos.
 """
 from typing import Optional, List, Dict, Any
 from app.database import cursor_context
+from app.utils_df import decimal_to_float
 from app.queries import (
     q_gasto_by_id,
     q_list_gastos,
@@ -157,5 +158,5 @@ def get_total_gastos(mes: Optional[str] = None, anio: Optional[int] = None) -> f
     with cursor_context() as (_, cursor):
         query, params = q_total_gastos(mes=mes, anio=anio)
         cursor.execute(query, params)
-        result = cursor.fetchone()
-        return float(result["total"]) if result and result["total"] else 0.0
+    result = cursor.fetchone()
+    return decimal_to_float(result["total"]) if result and result["total"] is not None else 0.0
