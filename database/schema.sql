@@ -15,7 +15,8 @@ CREATE TABLE IF NOT EXISTS presupuesto (
     fecha_cambio DATETIME NOT NULL,
     mes VARCHAR(20) NOT NULL,
     anio INT NOT NULL,
-    INDEX idx_mes_anio (mes, anio)
+    INDEX idx_mes_anio (mes, anio),
+    INDEX idx_anio_mes (anio, mes)
 );
 
 -- Tabla de gastos
@@ -29,5 +30,8 @@ CREATE TABLE IF NOT EXISTS gastos (
     fecha_creacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     INDEX idx_categoria (categoria),
     INDEX idx_mes_anio (mes, anio),
+    INDEX idx_anio_mes (anio, mes),
+    INDEX idx_anio (anio),
+    INDEX idx_categoria_anio_mes (categoria, anio, mes),
     FOREIGN KEY (categoria) REFERENCES categorias(nombre)
 );

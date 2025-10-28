@@ -28,6 +28,15 @@ def _month_field_literal() -> str:
 # ==========================
 
 def q_gasto_by_id(gasto_id: int) -> Tuple[str, Tuple[int]]:
+    """
+    Obtiene un gasto por su ID con información de categoría.
+
+    Args:
+        gasto_id: ID único del gasto.
+
+    Returns:
+        (sql, params): Query y parámetros para obtener un gasto por ID.
+    """
     sql = """
         SELECT g.id,
                c.nombre AS categoria,
@@ -45,6 +54,20 @@ def q_gasto_by_id(gasto_id: int) -> Tuple[str, Tuple[int]]:
 def q_list_gastos(mes: Optional[str] = None,
                   anio: Optional[int] = None,
                   categoria: Optional[str] = None) -> Tuple[str, List]:
+    """
+    Lista gastos con filtros opcionales por mes, año y categoría.
+
+    Args:
+        mes: Filtrar por mes (ej: "Enero", "Febrero").
+        anio: Filtrar por año (ej: 2025).
+        categoria: Filtrar por nombre de categoría.
+
+    Returns:
+        (sql, params): Query con ordenación DESC por año/mes/id y parámetros.
+
+    Ejemplo:
+        sql, params = q_list_gastos(mes="Octubre", anio=2025)
+    """
     sql = """
         SELECT g.id,
                c.nombre AS categoria,
@@ -74,10 +97,29 @@ def q_list_gastos(mes: Optional[str] = None,
 
 
 def q_categoria_nombre_by_id() -> str:
+    """
+    Obtiene el nombre de una categoría por su ID.
+
+    Returns:
+        SQL para SELECT nombre dado un ID de categoría.
+    """
     return "SELECT nombre FROM categorias WHERE id = %s;"
 
 
 def q_insert_gasto() -> str:
+    """
+    Inserta un nuevo gasto en la base de datos.
+
+    Parámetros esperados (en orden):
+        - categoria (str): Nombre de la categoría.
+        - descripcion (str): Descripción del gasto.
+        - monto (float): Monto del gasto.
+        - mes (str): Mes del gasto.
+        - anio (int): Año del gasto.
+
+    Returns:
+        SQL INSERT para gastos.
+    """
     return (
         "INSERT INTO gastos (categoria, descripcion, monto, mes, anio) "
         "VALUES (%s, %s, %s, %s, %s);"
@@ -85,6 +127,18 @@ def q_insert_gasto() -> str:
 
 
 def q_update_gasto() -> str:
+    """
+    Actualiza un gasto existente.
+
+    Parámetros esperados (en orden):
+        - categoria (str): Nuevo nombre de categoría.
+        - descripcion (str): Nueva descripción.
+        - monto (float): Nuevo monto.
+        - id (int): ID del gasto a actualizar.
+
+    Returns:
+        SQL UPDATE para gastos.
+    """
     return (
         "UPDATE gastos SET categoria = %s, descripcion = %s, monto = %s "
         "WHERE id = %s;"
@@ -92,10 +146,29 @@ def q_update_gasto() -> str:
 
 
 def q_delete_gasto() -> str:
+    """
+    Elimina un gasto por su ID.
+
+    Parámetros esperados:
+        - id (int): ID del gasto a eliminar.
+
+    Returns:
+        SQL DELETE para gastos.
+    """
     return "DELETE FROM gastos WHERE id = %s;"
 
 
 def q_total_gastos(mes: Optional[str] = None, anio: Optional[int] = None) -> Tuple[str, List]:
+    """
+    Calcula el total de gastos con filtros opcionales.
+
+    Args:
+        mes: Filtrar por mes.
+        anio: Filtrar por año.
+
+    Returns:
+        (sql, params): Query SUM con filtros y parámetros.
+    """
     sql = "SELECT SUM(monto) as total FROM gastos WHERE 1=1"
     params: List = []
     if mes:
@@ -127,6 +200,12 @@ def q_presupuesto_vigente() -> str:
 
 
 def q_historial_presupuestos() -> str:
+    """
+    Obtiene el historial completo de presupuestos ordenado por año y mes.
+
+    Returns:
+        SQL SELECT para historial de presupuestos.
+    """
     return f"""
         SELECT mes, anio, monto
         FROM presupuesto
@@ -135,18 +214,60 @@ def q_historial_presupuestos() -> str:
 
 
 def q_presupuesto_exists() -> str:
+    """
+    Comprueba si existe un presupuesto para un mes/año concreto.
+
+    Parámetros esperados:
+        - mes (str): Mes del presupuesto.
+        - anio (int): Año del presupuesto.
+
+    Returns:
+        SQL SELECT id para verificar existencia.
+    """
     return "SELECT id FROM presupuesto WHERE mes = %s AND anio = %s;"
 
 
 def q_update_presupuesto() -> str:
+    """
+    Actualiza el monto de un presupuesto existente.
+
+    Parámetros esperados:
+        - monto (float): Nuevo monto.
+        - mes (str): Mes del presupuesto.
+        - anio (int): Año del presupuesto.
+
+    Returns:
+        SQL UPDATE para presupuesto.
+    """
     return "UPDATE presupuesto SET monto = %s WHERE mes = %s AND anio = %s;"
 
 
 def q_insert_presupuesto() -> str:
+    """
+    Inserta un nuevo presupuesto en la base de datos.
+
+    Parámetros esperados:
+        - mes (str): Mes del presupuesto.
+        - anio (int): Año del presupuesto.
+        - monto (float): Monto del presupuesto.
+
+    Returns:
+        SQL INSERT para presupuesto.
+    """
     return "INSERT INTO presupuesto (mes, anio, monto) VALUES (%s, %s, %s);"
 
 
 def q_sum_gastos_hasta_mes() -> str:
+    """
+    Suma total de gastos hasta un mes específico en un año.
+
+    Parámetros esperados:
+        - anio (int): Año de referencia.
+        - mes (str): Mes límite (incluido).
+
+    Returns:
+        SQL SELECT SUM con ordenación de meses.
+    """
     return f"""
         SELECT SUM(monto) AS total_gastos
         FROM gastos
@@ -160,18 +281,52 @@ def q_sum_gastos_hasta_mes() -> str:
 # ==========================
 
 def q_list_categorias() -> str:
+    """
+    Lista todas las categorías ordenadas alfabéticamente.
+
+    Returns:
+        SQL SELECT * para categorías.
+    """
     return "SELECT * FROM categorias ORDER BY nombre ASC;"
 
 
 def q_insert_categoria() -> str:
+    """
+    Inserta una nueva categoría.
+
+    Parámetros esperados:
+        - nombre (str): Nombre de la categoría.
+
+    Returns:
+        SQL INSERT para categorías.
+    """
     return "INSERT INTO categorias (nombre) VALUES (%s);"
 
 
 def q_update_categoria() -> str:
+    """
+    Actualiza el nombre de una categoría existente.
+
+    Parámetros esperados:
+        - nombre (str): Nuevo nombre de la categoría.
+        - id (int): ID de la categoría a actualizar.
+
+    Returns:
+        SQL UPDATE para categorías.
+    """
     return "UPDATE categorias SET nombre = %s WHERE id = %s;"
 
 
 def q_delete_categoria() -> str:
+    """
+    Elimina una categoría por su ID.
+
+    Parámetros esperados:
+        - id (int): ID de la categoría a eliminar.
+
+    Returns:
+        SQL DELETE para categorías.
+    """
     return "DELETE FROM categorias WHERE id = %s;"
 
 
@@ -180,6 +335,19 @@ def q_delete_categoria() -> str:
 # ==========================
 
 def q_gastos_por_categoria_mes() -> str:
+    """
+    Agrupa gastos por categoría para un mes/año específico.
+
+    Parámetros esperados:
+        - mes (str): Mes de referencia.
+        - anio (int): Año de referencia.
+
+    Returns:
+        SQL SELECT con SUM agrupado por categoría.
+
+    Uso:
+        Para generar gráficos de torta de gastos por categoría.
+    """
     return (
         "SELECT categoria, SUM(monto) as total "
         "FROM gastos WHERE mes = %s AND anio = %s "
@@ -188,6 +356,15 @@ def q_gastos_por_categoria_mes() -> str:
 
 
 def q_gasolina_por_mes() -> str:
+    """
+    Obtiene gastos de gasolina agregados por mes en un año.
+
+    Parámetros esperados:
+        - anio (int): Año de referencia.
+
+    Returns:
+        SQL SELECT SUM para categoría 'Gasolina' ordenado por mes.
+    """
     return f"""
         SELECT mes, SUM(monto) AS total
         FROM gastos
@@ -198,6 +375,15 @@ def q_gasolina_por_mes() -> str:
 
 
 def q_historico_categoria_grouped() -> str:
+    """
+    Obtiene histórico de gastos de una categoría agrupado por año/mes/descripción.
+
+    Parámetros esperados:
+        - categoria (str): Nombre de la categoría a consultar.
+
+    Returns:
+        SQL SELECT con agrupación para gráficos apilados por descripción.
+    """
     return f"""
         SELECT anio, mes, categoria, descripcion, SUM(monto) AS total
         FROM gastos
@@ -208,6 +394,18 @@ def q_historico_categoria_grouped() -> str:
 
 
 def q_gastos_mensuales_aggregates() -> str:
+    """
+    Obtiene agregados de gastos mensuales (con y sin alquiler) para un año.
+
+    Parámetros esperados:
+        - anio (int): Año de referencia.
+
+    Returns:
+        SQL SELECT con CASE para separar gastos con/sin alquiler.
+
+    Uso:
+        Para gráficos de comparación presupuestaria.
+    """
     return f"""
         SELECT mes,
                SUM(CASE WHEN categoria = 'Alquiler' THEN 0 ELSE monto END) as total_sin_alquiler,
@@ -220,6 +418,15 @@ def q_gastos_mensuales_aggregates() -> str:
 
 
 def q_presupuestos_mensuales_por_anio() -> str:
+    """
+    Obtiene presupuestos mensuales históricos para un año.
+
+    Parámetros esperados:
+        - anio (int): Año de referencia.
+
+    Returns:
+        SQL SELECT mes/monto de presupuestos ordenado por mes.
+    """
     return f"""
         SELECT mes, monto as presupuesto_mensual
         FROM presupuesto
