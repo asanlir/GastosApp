@@ -1,0 +1,40 @@
+"""
+Test configuration file
+"""
+import os
+import sys
+import pytest
+from app import create_app
+
+# Añadir el directorio raíz al path para poder importar app
+sys.path.insert(0, os.path.abspath(
+    os.path.join(os.path.dirname(__file__), '..')))
+
+# Configuración de pytest
+pytest_plugins = [
+    "pytest_mock",
+]
+
+
+@pytest.fixture
+def app():
+    """Fixture que crea una instancia de la app en modo testing."""
+    app = create_app('testing')
+    app.config.update({
+        'TESTING': True,
+        'DB_NAME': 'test_economia_db',  # Usamos una BD de test separada
+        'TEMPLATES_AUTO_RELOAD': True
+    })
+    return app
+
+
+@pytest.fixture
+def client(app):
+    """Fixture que provee un cliente HTTP para hacer requests."""
+    return app.test_client()
+
+
+@pytest.fixture
+def runner(app):
+    """Fixture que provee un runner para ejecutar comandos CLI."""
+    return app.test_cli_runner()

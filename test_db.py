@@ -1,18 +1,10 @@
-import mysql.connector
-
-# Configuración de la base de datos (debe coincidir con la de app.py)
-db_config = {
-    'host': 'localhost',
-    'user': 'asanlir',
-    'password': 'L@nc3r0S',
-    'database': 'economia_db'
-}
+from app.database import get_connection
 
 
 def test_connection():
     try:
-        # Intentar conectar con la base de datos
-        conn = mysql.connector.connect(**db_config)
+        # Intentar conectar con la base de datos usando el helper central
+        conn = get_connection()
         cursor = conn.cursor()
 
         # Ejecutar una consulta para comprobar la conexión
@@ -25,7 +17,7 @@ def test_connection():
 
         print("Conexión exitosa. Tablas en la base de datos:", tables)
 
-    except mysql.connector.Error as e:
+    except Exception as e:
         print("Error al conectar con la base de datos:", e)
 
 

@@ -51,6 +51,15 @@
             <h1>Seguimiento cuentas Pino</h1>
         </header>    
 
+        <!-- Mostrar mensajes flash -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category }}">{{ message }}</div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
         <h1>Control de Gastos {{ mes_actual }} {{ anio_actual }} </h1>
 
         <!-- Mostrar la lista de gastos -->
@@ -98,6 +107,38 @@
             <p><strong>Acumulado:</strong> 
                 <span {% if acumulado_presupuesto < 0 %} style="color: red;" {% endif %}>
                     {{ acumulado_presupuesto }} €
+                </span>
+            </p>
+
+            <!-- Formulario para agregar nuevo gasto -->
+            <div class="form-container">
+                <h2>Agregar Gasto</h2>
+                <form action="/" method="post" class="gasto-form">
+                    <div class="form-group">
+                        <label for="categoria">Categoría:</label>
+                        <select name="categoria" id="categoria" required>
+                            {% for categoria in categorias %}
+                                <option value="{{ categoria.id }}">{{ categoria.nombre }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="descripcion">Descripción:</label>
+                        <input type="text" name="descripcion" id="descripcion">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="monto">Monto:</label>
+                        <input type="number" name="monto" id="monto" step="0.01" required>
+                    </div>
+
+                    <input type="hidden" name="mes" value="{{ mes_actual }}">
+                    <input type="hidden" name="anio" value="{{ anio_actual }}">
+
+                    <button type="submit">Agregar Gasto</button>
+                </form>
+            </div>
                 </span>
             </p>
         </div>

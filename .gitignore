@@ -10,3 +10,10 @@ __pycache__/
 .qodo
 *.ico
 .build/
+/.pytest_cache/
+/build/
+/dist/
+/.vscode/
+/.venv/
+venv/
+*.log
