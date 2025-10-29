@@ -739,3 +739,92 @@ button {
   transform: translateY(-2px);
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
 }
+
+/* ======================================
+   Estilos para Alert Modal de Error
+   ====================================== */
+
+/* Overlay oscuro de fondo que cubre toda la pantalla */
+.alert-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.7);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 10000;
+  animation: fadeIn 0.3s ease;
+}
+
+/* Caja del modal centrada */
+.alert-box {
+  background-color: white;
+  padding: 30px;
+  border-radius: 10px;
+  box-shadow: 0 5px 20px rgba(0, 0, 0, 0.3);
+  max-width: 500px;
+  min-width: 300px;
+  text-align: center;
+  animation: slideIn 0.3s ease;
+}
+
+/* Estilos específicos para alert de error */
+.alert-error {
+  border: 3px solid #e74c3c;
+}
+
+.alert-error h3 {
+  color: #e74c3c;
+  margin: 0 0 15px 0;
+  font-size: 24px;
+}
+
+.alert-error p {
+  color: #333;
+  font-size: 16px;
+  line-height: 1.5;
+  margin: 0 0 20px 0;
+}
+
+/* Botón de confirmación del modal */
+.btn-alert-ok {
+  background-color: #3498db;
+  color: white;
+  padding: 12px 40px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 16px;
+  font-weight: bold;
+  transition: all 0.3s;
+}
+
+.btn-alert-ok:hover {
+  background-color: #2980b9;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+/* Animaciones para el modal */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideIn {
+  from {
+    transform: translateY(-50px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}

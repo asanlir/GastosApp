@@ -95,13 +95,30 @@ def delete_categoria(categoria_id: int) -> bool:
 
     Raises:
         DatabaseError: Si hay un error en la base de datos
+        ValueError: Si la categoría tiene gastos asociados
     """
     try:
         with cursor_context() as (conn, cursor):
+            # Primero verificar si la categoría tiene gastos asociados
+            cursor.execute(
+                "SELECT COUNT(*) as count FROM gastos WHERE categoria = (SELECT nombre FROM categorias WHERE id = %s)",
+                (categoria_id,)
+            )
+            result = cursor.fetchone()
+
+            if result and result['count'] > 0:
+                raise ValueError(
+                    "No se puede eliminar la categoría porque tiene gastos asociados. "
+                    "Elimine primero los gastos o asígnelos a otra categoría."
+                )
+
+            # Si no hay gastos asociados, proceder con la eliminación
             cursor.execute(q_delete_categoria(), (categoria_id,))
             conn.commit()
             return cursor.rowcount > 0
     except DatabaseError:
+        raise
+    except ValueError:
         raise
     except pymysql.Error as e:
         raise DatabaseError(f"Error al eliminar categoría: {e}") from e

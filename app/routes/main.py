@@ -300,13 +300,36 @@ def config():
                 flash("Categoría agregada correctamente", "success")
             else:
                 flash("Error al agregar la categoría", "error")
+            return redirect(url_for('main.config'))
 
         elif "eliminar_categoria" in request.form:
-            categoria_id = int(request.form["eliminar_categoria"])
-            if categorias_service.delete_categoria(categoria_id):
-                flash("Categoría eliminada correctamente", "success")
-            else:
-                flash("Error al eliminar la categoría", "error")
+            try:
+                categoria_id = int(request.form["eliminar_categoria"])
+                if categorias_service.delete_categoria(categoria_id):
+                    flash("Categoría eliminada correctamente", "success")
+                else:
+                    flash("Error al eliminar la categoría", "error")
+            except ValueError as e:
+                flash(str(e), "error")
+            except Exception as e:
+                logger.error(f"Error al eliminar categoría: {e}")
+                flash("Error inesperado al eliminar la categoría", "error")
+            return redirect(url_for('main.config'))
+
+        elif "editar_categoria" in request.form:
+            try:
+                categoria_id = int(request.form["categoria_id"])
+                nuevo_nombre = request.form["editar_categoria"].strip()
+                if nuevo_nombre and categorias_service.update_categoria(categoria_id, nuevo_nombre):
+                    flash("Categoría actualizada correctamente", "success")
+                else:
+                    flash("Error al actualizar la categoría", "error")
+            except ValueError as e:
+                flash(str(e), "error")
+            except Exception as e:
+                logger.error(f"Error al actualizar categoría: {e}")
+                flash("Error inesperado al actualizar la categoría", "error")
+            return redirect(url_for('main.config'))
 
         elif "presupuesto_mensual" in request.form:
             try:
@@ -319,6 +342,7 @@ def config():
             except ValueError:
                 flash(
                     "Por favor, introduce un valor numérico válido para el presupuesto", "error")
+            return redirect(url_for('main.config'))
 
     categorias = categorias_service.list_categorias()
     presupuesto_actual = presupuesto_service.get_presupuesto_mensual(

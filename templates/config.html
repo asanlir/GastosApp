@@ -1,97 +1,289 @@
 <!DOCTYPE html>
 <html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Configuración</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
-</head>
-<body>
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='styles.css') }}"
+    />
+  </head>
+  <body>
     <div class="sidebar">
-        <h3>Menú</h3>
-        <a href="/">Inicio</a>
-        <a href="/report">Estadísticas</a>
-        <a href="/gastos">Histórico</a>
+      <h3>Menú</h3>
+      <a href="/">Inicio</a>
+      <a href="/report">Estadísticas</a>
+      <a href="/gastos">Histórico</a>
     </div>
 
     <div class="content centered">
-        <header class="main-header">
-            <h1>Configuración</h1>
-        </header>    
+      <header class="main-header">
+        <h1>Configuración</h1>
+      </header>
 
-        <h2 id="Categorias">Gestión de Categorías</h2>
-        <div class="table-container">
-            <table>
-                <thead>
-                    <tr>
-                        <th class="center-text">Categoría</th>
-                        <th></th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for categoria in categorias %}
-                    <tr>
-                        <td class="center-text">{{ categoria.nombre }}</td>
-                        <td>
-                            <form method="POST" style="display:inline;">
-                                <input type="hidden" name="eliminar_categoria" value="{{ categoria.id }}">
-                                <button type="submit" class="btn btn-danger no-bg">
-                                    <img src="{{ url_for('static', filename='eliminar.png') }}" width="23" height="23" alt="Eliminar">
-                                </button>
-                            </form>
-                        </td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
+      <!-- Mostrar mensajes flash -->
+      {% with messages = get_flashed_messages(with_categories=true) %} {% if
+      messages %} {% for category, message in messages %} {% if category ==
+      'error' or category == 'danger' %}
+      <!-- Mensaje de error que requiere confirmación del usuario -->
+      <div id="errorAlert" class="alert-overlay">
+        <div class="alert-box alert-error">
+          <h3>⚠️ Error</h3>
+          <p>{{ message }}</p>
+          <button onclick="closeErrorAlert()" class="btn-alert-ok">
+            Aceptar
+          </button>
         </div>
+      </div>
+      {% else %}
+      <!-- Mensaje de éxito temporal (auto-desaparece) -->
+      <div class="alert alert-{{ category }} flash-message">{{ message }}</div>
+      {% endif %} {% endfor %} {% endif %} {% endwith %}
 
-        <button id="toggleCategoriaBtn">Añadir Categoría</button>
-        <div id="addCategoriaForm" style="display: none;" class="spacer">
-            <form method="POST">
-                <input type="text" name="nueva_categoria" placeholder="Nueva categoría" required>
-                <button type="submit">Guardar</button>
-            </form>
-        </div>
+      <h2 id="Categorias">Gestión de Categorías</h2>
+      <div class="table-container">
+        <table>
+          <thead>
+            <tr>
+              <th class="center-text">Categoría</th>
+              <th class="center-text">Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for categoria in categorias %}
+            <tr>
+              <td class="center-text">{{ categoria.nombre }}</td>
+              <td>
+                <button
+                  type="button"
+                  class="btn btn-edit no-bg"
+                  onclick="openEditModal({{ categoria.id }}, {{ categoria.nombre|tojson }})"
+                >
+                  <img
+                    src="{{ url_for('static', filename='editar.png') }}"
+                    width="23"
+                    height="23"
+                    alt="Editar"
+                  />
+                </button>
+                <form method="POST" style="display: inline">
+                  <input
+                    type="hidden"
+                    name="eliminar_categoria"
+                    value="{{ categoria.id }}"
+                  />
+                  <button type="submit" class="btn btn-danger no-bg">
+                    <img
+                      src="{{ url_for('static', filename='eliminar.png') }}"
+                      width="23"
+                      height="23"
+                      alt="Eliminar"
+                    />
+                  </button>
+                </form>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
 
-        <h2 id="Presupuesto">Presupuesto Mensual</h2>
-        <div class="table-container">
-            <table>
-                <thead>
-                    <tr>
-                        <th class="center-text">Presupuesto Actual</th>
-                        <th></th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td class="center-text"><strong>{{ presupuesto_actual }} €</strong></td>
-                        <td>
-                            <button id="togglePresupuestoBtn">Actualizar Presupuesto</button>
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
-        </div>
+      <!-- Botón para mostrar modal de añadir categoría -->
+      <button id="toggleCategoriaBtn" class="btn-add-gasto">
+        Añadir Categoría
+      </button>
 
-        <div id="updatePresupuestoForm" style="display: none;" class="spacer">
-            <form method="POST">
-                <input type="number" name="presupuesto_mensual" placeholder="Nuevo presupuesto" required step="0.01">
-                <button type="submit">Guardar</button>
-            </form>
+      <!-- Modal para añadir categoría -->
+      <div id="modalAddCategoria" class="modal" style="display: none">
+        <div class="modal-content">
+          <span class="modal-close" onclick="closeModal('modalAddCategoria')"
+            >&times;</span
+          >
+          <h2>Añadir Nueva Categoría</h2>
+          <form action="/config" method="POST" class="modal-form">
+            <div class="form-group">
+              <label for="nueva_categoria">Nombre de la Categoría:</label>
+              <input
+                type="text"
+                name="nueva_categoria"
+                id="nueva_categoria"
+                required
+              />
+            </div>
+            <div class="form-buttons">
+              <button type="submit" class="btn-submit">
+                Guardar Categoría
+              </button>
+              <button
+                type="button"
+                class="btn-cancel"
+                onclick="closeModal('modalAddCategoria')"
+              >
+                Cancelar
+              </button>
+            </div>
+          </form>
         </div>
+      </div>
+
+      <!-- Modal para editar categoría -->
+      <div id="modalEditCategoria" class="modal" style="display: none">
+        <div class="modal-content">
+          <span class="modal-close" onclick="closeModal('modalEditCategoria')"
+            >&times;</span
+          >
+          <h2>Editar Categoría</h2>
+          <form action="/config" method="POST" class="modal-form">
+            <input type="hidden" name="categoria_id" id="edit_categoria_id" />
+            <div class="form-group">
+              <label for="editar_categoria">Nombre de la Categoría:</label>
+              <input
+                type="text"
+                name="editar_categoria"
+                id="editar_categoria"
+                required
+              />
+            </div>
+            <div class="form-buttons">
+              <button type="submit" class="btn-submit">
+                Actualizar Categoría
+              </button>
+              <button
+                type="button"
+                class="btn-cancel"
+                onclick="closeModal('modalEditCategoria')"
+              >
+                Cancelar
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <h2 id="Presupuesto">Presupuesto Mensual</h2>
+      <div class="table-container">
+        <table>
+          <thead>
+            <tr>
+              <th class="center-text">Presupuesto Actual</th>
+              <th class="center-text">Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="center-text">
+                <strong>{{ presupuesto_actual }} €</strong>
+              </td>
+              <td>
+                <button id="togglePresupuestoBtn" class="btn-edit">
+                  Actualizar Presupuesto
+                </button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Modal para actualizar presupuesto -->
+      <div id="modalPresupuesto" class="modal" style="display: none">
+        <div class="modal-content">
+          <span class="modal-close" onclick="closeModal('modalPresupuesto')"
+            >&times;</span
+          >
+          <h2>Actualizar Presupuesto Mensual</h2>
+          <form action="/config" method="POST" class="modal-form">
+            <div class="form-group">
+              <label for="presupuesto_mensual">Nuevo Presupuesto (€):</label>
+              <input
+                type="number"
+                name="presupuesto_mensual"
+                id="presupuesto_mensual"
+                step="0.01"
+                required
+              />
+            </div>
+            <div class="form-buttons">
+              <button type="submit" class="btn-submit">
+                Guardar Presupuesto
+              </button>
+              <button
+                type="button"
+                class="btn-cancel"
+                onclick="closeModal('modalPresupuesto')"
+              >
+                Cancelar
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
     </div>
 
     <script>
-        document.getElementById("toggleCategoriaBtn").addEventListener("click", function() {
-            var form = document.getElementById("addCategoriaForm");
-            form.style.display = (form.style.display === "none") ? "block" : "none";
+      // Función genérica para abrir modal
+      function openModal(modalId) {
+        document.getElementById(modalId).style.display = "flex";
+      }
+
+      // Función genérica para cerrar modal
+      function closeModal(modalId) {
+        document.getElementById(modalId).style.display = "none";
+      }
+
+      // Función específica para abrir modal de edición con datos
+      function openEditModal(categoriaId, categoriaNombre) {
+        document.getElementById("edit_categoria_id").value = categoriaId;
+        document.getElementById("editar_categoria").value = categoriaNombre;
+        openModal("modalEditCategoria");
+      }
+
+      // Eventos para botones que abren modales
+      document
+        .getElementById("toggleCategoriaBtn")
+        .addEventListener("click", function () {
+          openModal("modalAddCategoria");
         });
 
-        document.getElementById("togglePresupuestoBtn").addEventListener("click", function() {
-            var form = document.getElementById("updatePresupuestoForm");
-            form.style.display = (form.style.display === "none") ? "block" : "none";
+      document
+        .getElementById("togglePresupuestoBtn")
+        .addEventListener("click", function () {
+          openModal("modalPresupuesto");
         });
+
+      // Cerrar modal al hacer clic fuera del contenido
+      window.addEventListener("click", function (event) {
+        const modals = [
+          "modalAddCategoria",
+          "modalEditCategoria",
+          "modalPresupuesto",
+        ];
+        modals.forEach((modalId) => {
+          const modal = document.getElementById(modalId);
+          if (event.target === modal) {
+            closeModal(modalId);
+          }
+        });
+      });
+
+      // Cerrar mensaje de error
+      function closeErrorAlert() {
+        document.getElementById("errorAlert").style.display = "none";
+      }
+
+      // Auto-ocultar mensajes flash de éxito después de 3 segundos
+      document.addEventListener("DOMContentLoaded", function () {
+        const flashMessages = document.querySelectorAll(".flash-message");
+        flashMessages.forEach(function (message) {
+          setTimeout(function () {
+            message.style.transition = "opacity 0.5s ease";
+            message.style.opacity = "0";
+            setTimeout(function () {
+              message.remove();
+            }, 500);
+          }, 3000);
+        });
+      });
     </script>
-</body>
+  </body>
 </html>
