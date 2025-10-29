@@ -295,7 +295,8 @@ class TestCategoriasService:
         """Test actualizar categoría con éxito."""
         mock_conn = MagicMock()
         mock_cursor = MagicMock()
-        mock_cursor.rowcount = 1
+        # Simular que la categoría existe con nombre diferente
+        mock_cursor.fetchone.return_value = {'nombre': 'NombreViejo'}
         mock_cursor_context.return_value.__enter__.return_value = (
             mock_conn, mock_cursor)
 
@@ -305,10 +306,75 @@ class TestCategoriasService:
         mock_conn.commit.assert_called_once()
 
     @patch('app.services.categorias_service.cursor_context')
+    def test_update_categoria_no_existe(self, mock_cursor_context):
+        """Test actualizar categoría que no existe."""
+        mock_conn = MagicMock()
+        mock_cursor = MagicMock()
+        # Simular que la categoría no existe
+        mock_cursor.fetchone.return_value = None
+        mock_cursor_context.return_value.__enter__.return_value = (
+            mock_conn, mock_cursor)
+
+        resultado = categorias_service.update_categoria(999, 'NoExiste')
+
+        assert resultado is False
+        # No debería hacer commit porque no existe
+        mock_conn.commit.assert_not_called()
+
+    @patch('app.services.categorias_service.cursor_context')
+    def test_update_categoria_nombre_duplicado(self, mock_cursor_context):
+        """Test actualizar categoría con nombre duplicado."""
+        import pymysql
+        mock_conn = MagicMock()
+        mock_cursor = MagicMock()
+        # Primera llamada: simular que la categoría existe
+        # Segunda llamada (UPDATE): simular IntegrityError
+        mock_cursor.fetchone.return_value = {'nombre': 'NombreViejo'}
+        mock_cursor.execute.side_effect = [
+            None,  # Primera llamada SELECT exitosa
+            pymysql.IntegrityError(1062, "Duplicate entry 'Test' for key 'nombre'")
+        ]
+        mock_cursor_context.return_value.__enter__.return_value = (
+            mock_conn, mock_cursor)
+
+        with pytest.raises(ValidationError, match="Ya existe"):
+            categorias_service.update_categoria(1, 'Duplicado')
+
+    @patch('app.services.categorias_service.cursor_context')
+    def test_update_categoria_mismo_nombre(self, mock_cursor_context):
+        """Test actualizar categoría con el mismo nombre."""
+        mock_conn = MagicMock()
+        mock_cursor = MagicMock()
+        # Simular que la categoría existe con el mismo nombre
+        mock_cursor.fetchone.return_value = {'nombre': 'MismoNombre'}
+        mock_cursor_context.return_value.__enter__.return_value = (
+            mock_conn, mock_cursor)
+
+        resultado = categorias_service.update_categoria(1, 'MismoNombre')
+
+        assert resultado is True
+        # No debería hacer commit porque el nombre no cambió
+        mock_conn.commit.assert_not_called()
+
+    @patch('app.services.categorias_service.cursor_context')
+    def test_update_categoria_nombre_vacio(self, mock_cursor_context):
+        """Test actualizar categoría con nombre vacío."""
+        with pytest.raises(ValidationError, match="no puede estar vacío"):
+            categorias_service.update_categoria(1, '')
+
+    @patch('app.services.categorias_service.cursor_context')
+    def test_update_categoria_nombre_vacio_whitespace(self, mock_cursor_context):
+        """Test actualizar categoría con nombre solo espacios."""
+        with pytest.raises(ValidationError, match="no puede estar vacío"):
+            categorias_service.update_categoria(1, '   ')
+
+    @patch('app.services.categorias_service.cursor_context')
     def test_delete_categoria_exitoso(self, mock_cursor_context):
         """Test eliminar categoría con éxito."""
         mock_conn = MagicMock()
         mock_cursor = MagicMock()
+        # Simular que no hay gastos asociados
+        mock_cursor.fetchone.return_value = {'count': 0}
         mock_cursor.rowcount = 1
         mock_cursor_context.return_value.__enter__.return_value = (
             mock_conn, mock_cursor)

@@ -14,6 +14,7 @@ from flask import Blueprint, render_template, request, redirect, url_for, flash
 
 from app.services import gastos_service, presupuesto_service, categorias_service, charts_service
 from app.logging_config import get_logger
+from app.exceptions import DatabaseError, ValidationError
 
 logger = get_logger(__name__)
 
@@ -114,7 +115,7 @@ def delete_gasto(gasto_id):
     Returns:
         Redirect a la página principal con mensaje flash
     """
-    logger.info(f"Intentando eliminar gasto ID: {gasto_id}")
+    logger.info("Intentando eliminar gasto ID: %s", gasto_id)
     gasto = gastos_service.get_gasto_by_id(gasto_id)
 
     if gasto:
@@ -148,7 +149,7 @@ def edit_gasto(gasto_id):
         GET: Template 'edit_gasto.html'
         POST: Redirect a página principal
     """
-    logger.info(f"Editando gasto ID: {gasto_id}")
+    logger.info("Editando gasto ID: %s", gasto_id)
     # Obtener el gasto
     gasto = gastos_service.get_gasto_by_id(gasto_id)
     if not gasto:
@@ -311,8 +312,8 @@ def config():
                     flash("Error al eliminar la categoría", "error")
             except ValueError as e:
                 flash(str(e), "error")
-            except Exception as e:
-                logger.error(f"Error al eliminar categoría: {e}")
+            except DatabaseError as e:
+                logger.error("Error de base de datos al eliminar categoría: %s", e)
                 flash("Error inesperado al eliminar la categoría", "error")
             return redirect(url_for('main.config'))
 
@@ -321,21 +322,21 @@ def config():
                 categoria_id = int(request.form["categoria_id"])
                 nuevo_nombre = request.form["editar_categoria"].strip()
                 logger.debug(
-                    f"Intentando editar categoría ID {categoria_id} con nuevo nombre: {nuevo_nombre}")
+                    "Intentando editar categoría ID %s con nuevo nombre: %s", categoria_id, nuevo_nombre)
                 if nuevo_nombre and categorias_service.update_categoria(categoria_id, nuevo_nombre):
                     flash("Categoría actualizada correctamente", "success")
                     logger.info(
-                        f"Categoría {categoria_id} actualizada a '{nuevo_nombre}'")
+                        "Categoría %s actualizada a '%s'", categoria_id, nuevo_nombre)
                 else:
                     flash("Error al actualizar la categoría", "error")
                     logger.warning(
-                        f"Fallo al actualizar categoría {categoria_id}")
-            except ValueError as e:
+                        "Fallo al actualizar categoría %s", categoria_id)
+            except (ValueError, ValidationError) as e:
                 flash(str(e), "error")
                 logger.error(
-                    f"Error de validación al actualizar categoría: {e}")
-            except Exception as e:
-                logger.error(f"Error al actualizar categoría: {e}")
+                    "Error de validación al actualizar categoría: %s", e)
+            except DatabaseError as e:
+                logger.error("Error de base de datos al actualizar categoría: %s", e)
                 flash("Error inesperado al actualizar la categoría", "error")
             return redirect(url_for('main.config'))
 
