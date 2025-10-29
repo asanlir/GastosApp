@@ -87,25 +87,25 @@ try {
     Write-Host "  Get-ScheduledTaskInfo -TaskName '$TaskName'"
     Write-Host ""
     
-    # Preguntar si quiere ejecutar un backup de prueba
-    $runTest = Read-Host "¿Deseas ejecutar un backup de prueba ahora? (S/N)"
-    if ($runTest -eq "S" -or $runTest -eq "s") {
-        Write-Host ""
-        Write-Host "Ejecutando backup de prueba..." -ForegroundColor Cyan
-        Start-ScheduledTask -TaskName $TaskName
-        Start-Sleep -Seconds 3
-        
-        $taskInfo = Get-ScheduledTaskInfo -TaskName $TaskName
-        Write-Host "Estado: $($taskInfo.LastTaskResult)" -ForegroundColor $(if ($taskInfo.LastTaskResult -eq 0) { "Green" } else { "Red" })
-        
-        if ($taskInfo.LastTaskResult -eq 0) {
-            Write-Host "✓ Backup de prueba completado exitosamente" -ForegroundColor Green
-        } else {
-            Write-Host "⚠ El backup falló. Revisa el log en backups/backup.log" -ForegroundColor Red
-        }
-    }
-    
 } catch {
     Write-Host "ERROR al crear la tarea programada: $_" -ForegroundColor Red
     exit 1
+}
+
+# Preguntar si quiere ejecutar un backup de prueba
+$runTest = Read-Host "¿Deseas ejecutar un backup de prueba ahora? (S/N)"
+if ($runTest -eq "S" -or $runTest -eq "s") {
+    Write-Host ""
+    Write-Host "Ejecutando backup de prueba..." -ForegroundColor Cyan
+    Start-ScheduledTask -TaskName $TaskName
+    Start-Sleep -Seconds 3
+    
+    $taskInfo = Get-ScheduledTaskInfo -TaskName $TaskName
+    Write-Host "Estado: $($taskInfo.LastTaskResult)" -ForegroundColor $(if ($taskInfo.LastTaskResult -eq 0) { "Green" } else { "Red" })
+    
+    if ($taskInfo.LastTaskResult -eq 0) {
+        Write-Host "✓ Backup de prueba completado exitosamente" -ForegroundColor Green
+    } else {
+        Write-Host "⚠ El backup falló. Revisa el log en backups/backup.log" -ForegroundColor Red
+    }
 }

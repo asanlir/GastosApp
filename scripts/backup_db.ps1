@@ -32,6 +32,28 @@ function Write-Log {
     Add-Content -Path $LogFile -Value $logMessage
 }
 
+# Función para cargar variables desde .env
+function Load-EnvFile {
+    param([string]$EnvPath)
+    
+    if (Test-Path $EnvPath) {
+        Write-Log "Cargando variables de entorno desde .env"
+        Get-Content $EnvPath | ForEach-Object {
+            if ($_ -match '^\s*([^#][^=]+)=(.+)$') {
+                $name = $matches[1].Trim()
+                $value = $matches[2].Trim()
+                # Remover comillas si existen
+                $value = $value -replace '^["'']|["'']$', ''
+                [Environment]::SetEnvironmentVariable($name, $value, "Process")
+            }
+        }
+    }
+}
+
+# Cargar .env si existe
+$envFile = Join-Path (Split-Path $PSScriptRoot -Parent) ".env"
+Load-EnvFile -EnvPath $envFile
+
 # Crear directorio de backups si no existe
 if (-not (Test-Path $BackupDir)) {
     New-Item -ItemType Directory -Path $BackupDir | Out-Null
@@ -78,12 +100,27 @@ Write-Log "=== Iniciando backup $backupType de $DatabaseName ==="
 
 # Ejecutar mysqldump
 try {
-    $mysqldumpCmd = "mysqldump --host=$env:MYSQL_HOST --port=$env:MYSQL_PORT --user=$env:MYSQL_USER --password=$env:MYSQL_PASSWORD --databases $DatabaseName --single-transaction --routines --triggers > `"$backupFile`""
+    # Usar MYSQL_PWD para evitar exponer la contraseña en la línea de comandos
+    $env:MYSQL_PWD = $env:MYSQL_PASSWORD
     
-    # Ejecutar comando
-    cmd /c $mysqldumpCmd 2>&1 | Out-Null
+    $mysqldumpArgs = @(
+        "--host=$env:MYSQL_HOST",
+        "--port=$env:MYSQL_PORT",
+        "--user=$env:MYSQL_USER",
+        "--databases", $DatabaseName,
+        "--single-transaction",
+        "--triggers",
+        "--events",
+        "--no-tablespaces",  # Evita PROCESS privilege requirement
+        "--skip-lock-tables",  # Evita problemas de bloqueo
+        "--column-statistics=0",  # Evita problemas con INFORMATION_SCHEMA
+        "--result-file=`"$backupFile`""
+    )
     
-    if ($LASTEXITCODE -eq 0) {
+    # Ejecutar comando y capturar salida
+    $output = & mysqldump @mysqldumpArgs 2>&1
+    
+    if ($LASTEXITCODE -eq 0 -and (Test-Path $backupFile)) {
         $fileSize = (Get-Item $backupFile).Length / 1MB
         Write-Log "Backup creado exitosamente: $backupFile ($([math]::Round($fileSize, 2)) MB)"
         
@@ -96,7 +133,10 @@ try {
             try {
                 & $winrarPath a -df -ep -m5 -inul "$backupFileGz" "$backupFile" 2>&1 | Out-Null
                 if ($LASTEXITCODE -eq 0) {
-                    Remove-Item $backupFile -Force
+                    # WinRAR con -df ya eliminó el archivo fuente
+                    if (Test-Path $backupFile) {
+                        Remove-Item $backupFile -Force
+                    }
                     Write-Log "Backup comprimido con WinRAR: $backupFileGz"
                     $compressed = $true
                 }
@@ -121,6 +161,9 @@ try {
         }
     } else {
         Write-Log "ERROR: Fallo al crear backup (código de salida: $LASTEXITCODE)"
+        if ($output) {
+            Write-Log "Detalles del error: $output"
+        }
         exit 1
     }
 } catch {
