@@ -94,5 +94,44 @@
             </table>
         </div>
 
+        <!-- Información de paginación -->
+        <div class="pagination-info">
+            <p>Mostrando {{ gastos|length }} de {{ total_gastos }} gastos | Página {{ page }} de {{ total_pages }}</p>
+        </div>
+
+        <!-- Controles de paginación -->
+        <div class="pagination">
+            {% if page > 1 %}
+                <a href="{{ url_for('main.ver_gastos', page=page-1, mes=filtros.get('mes', ''), anio=filtros.get('anio', ''), categoria=filtros.get('categoria', '')) }}" class="pagination-btn">← Anterior</a>
+            {% else %}
+                <span class="pagination-btn disabled">← Anterior</span>
+            {% endif %}
+
+            {% for p in range(1, total_pages + 1) %}
+                {% if p == page %}
+                    <span class="pagination-btn active">{{ p }}</span>
+                {% elif p == 1 or p == total_pages or (p >= page - 2 and p <= page + 2) %}
+                    <a href="{{ url_for('main.ver_gastos', page=p, mes=filtros.get('mes', ''), anio=filtros.get('anio', ''), categoria=filtros.get('categoria', '')) }}" class="pagination-btn">{{ p }}</a>
+                {% elif p == page - 3 or p == page + 3 %}
+                    <span class="pagination-btn disabled">...</span>
+                {% endif %}
+            {% endfor %}
+
+            {% if page < total_pages %}
+                <a href="{{ url_for('main.ver_gastos', page=page+1, mes=filtros.get('mes', ''), anio=filtros.get('anio', ''), categoria=filtros.get('categoria', '')) }}" class="pagination-btn">Siguiente →</a>
+            {% else %}
+                <span class="pagination-btn disabled">Siguiente →</span>
+            {% endif %}
+        </div>
+
+        <!-- Botón de descarga -->
+        <div class="download-section">
+            <a href="{{ url_for('main.descargar_gastos', mes=filtros.get('mes', ''), anio=filtros.get('anio', ''), categoria=filtros.get('categoria', '')) }}" class="btn-download">
+                📥 Descargar CSV
+            </a>
+        </div>
+
+    </div>
+
 </body>
 </html>

@@ -90,9 +90,7 @@ def q_list_gastos(mes: Optional[str] = None,
         sql += " AND g.categoria = %s"
         params.append(categoria)
 
-    sql += f""" ORDER BY anio DESC,
-            {_month_field_literal()},
-            id DESC;"""
+    sql += " ORDER BY g.id DESC;"
     return sql, params
 
 

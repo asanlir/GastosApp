@@ -10,7 +10,9 @@ Todas las rutas están registradas en el blueprint 'main' y se mantiene
 compatibilidad con endpoints legacy mediante LEGACY_ROUTES.
 """
 from datetime import datetime
-from flask import Blueprint, render_template, request, redirect, url_for, flash
+from flask import Blueprint, render_template, request, redirect, url_for, flash, make_response
+import csv
+from io import StringIO
 
 from app.services import gastos_service, presupuesto_service, categorias_service, charts_service
 from app.logging_config import get_logger
@@ -175,39 +177,136 @@ def edit_gasto(gasto_id):
 @main_bp.route('/gastos', methods=['GET', 'POST'])
 def ver_gastos():
     """
-    Vista de histórico de gastos con filtros opcionales.
+    Vista de histórico de gastos con filtros opcionales y paginación.
 
-    GET: Muestra todos los gastos sin filtros
-    POST: Aplica filtros de búsqueda
+    GET: Muestra gastos con filtros de URL
+    POST: Aplica filtros y redirige a GET con parámetros
 
     Form data (POST):
         mes (str, opcional): Filtrar por mes
         anio (int, opcional): Filtrar por año
         categoria (str, opcional): Filtrar por categoría
 
+    Query params:
+        page (int): Número de página (default: 1)
+        mes (str, opcional): Filtro de mes
+        anio (int, opcional): Filtro de año
+        categoria (str, opcional): Filtro de categoría
+
     Returns:
-        Template 'gastos.html' con lista de gastos filtrados
+        Template 'gastos.html' con lista de gastos filtrados y paginados
     """
     logger.debug("Acceso a histórico de gastos")
     categorias = categorias_service.list_categorias()
     categorias_nombres = [cat['nombre'] for cat in categorias]
+
+    # Si es POST, redirigir a GET con los filtros en la URL
+    if request.method == "POST":
+        mes = request.form.get("mes", "")
+        anio = request.form.get("anio", "")
+        categoria = request.form.get("categoria", "")
+
+        return redirect(url_for('main.ver_gastos',
+                                mes=mes,
+                                anio=anio,
+                                categoria=categoria,
+                                page=1))
+
+    # Obtener filtros de los parámetros de la URL (GET)
+    filtros = {}
+    mes = request.args.get("mes", "")
+    if mes and mes.strip():
+        filtros["mes"] = mes
+
+    anio = request.args.get("anio", "")
+    if anio and anio.strip():
+        filtros["anio"] = int(anio)
+
+    categoria = request.args.get("categoria", "")
+    if categoria and categoria.strip():
+        filtros["categoria"] = categoria
+
+    # Obtener gastos filtrados
+    gastos_completos = gastos_service.list_gastos(**filtros)
+
+    # Paginación
+    page = request.args.get('page', 1, type=int)
+    per_page = 20
+    total_gastos = len(gastos_completos)
+    # Redondeo hacia arriba
+    total_pages = (total_gastos + per_page - 1) // per_page
+
+    # Calcular índices de slice
+    start_idx = (page - 1) * per_page
+    end_idx = start_idx + per_page
+    gastos_pagina = gastos_completos[start_idx:end_idx]
+
+    return render_template('gastos.html',
+                           gastos=gastos_pagina,
+                           categorias=categorias_nombres,
+                           filtros=filtros,
+                           page=page,
+                           total_pages=total_pages,
+                           total_gastos=total_gastos)
+
+
+@main_bp.route('/gastos/descargar', methods=['GET'])
+def descargar_gastos():
+    """
+    Descarga los gastos filtrados en formato CSV.
+
+    Query params:
+        mes (str, opcional): Filtrar por mes
+        anio (int, opcional): Filtrar por año
+        categoria (str, opcional): Filtrar por categoría
+
+    Returns:
+        Archivo CSV con los gastos filtrados
+    """
+    logger.debug("Descargando gastos en CSV")
     filtros = {}
 
-    if request.method == "POST":
-        if request.form.get("mes"):
-            filtros["mes"] = request.form["mes"]
-        if request.form.get("anio"):
-            filtros["anio"] = int(request.form["anio"])
-        if request.form.get("categoria"):
-            filtros["categoria"] = request.form["categoria"]
+    # Solo añadir filtros si tienen valor (no vacíos)
+    mes = request.args.get("mes", "")
+    if mes and mes.strip():
+        filtros["mes"] = mes
+
+    anio = request.args.get("anio", "")
+    if anio and anio.strip():
+        filtros["anio"] = int(anio)
+
+    categoria = request.args.get("categoria", "")
+    if categoria and categoria.strip():
+        filtros["categoria"] = categoria
 
     # Obtener gastos filtrados
     gastos = gastos_service.list_gastos(**filtros)
 
-    return render_template('gastos.html',
-                           gastos=gastos,
-                           categorias=categorias_nombres,
-                           filtros=filtros)
+    # Crear CSV en memoria
+    si = StringIO()
+    writer = csv.writer(si)
+
+    # Escribir encabezados
+    writer.writerow(['ID', 'Categoría', 'Descripción',
+                    'Monto (€)', 'Mes', 'Año'])
+
+    # Escribir datos
+    for gasto in gastos:
+        writer.writerow([
+            gasto.get('id', ''),
+            gasto.get('categoria', ''),
+            gasto.get('descripcion', ''),
+            gasto.get('monto', ''),
+            gasto.get('mes', ''),
+            gasto.get('anio', '')
+        ])
+
+    # Crear respuesta
+    output = make_response(si.getvalue())
+    output.headers["Content-Disposition"] = "attachment; filename=gastos.csv"
+    output.headers["Content-type"] = "text/csv; charset=utf-8"
+
+    return output
 
 
 @main_bp.route('/report', methods=['GET', 'POST'])
@@ -313,7 +412,8 @@ def config():
             except ValueError as e:
                 flash(str(e), "error")
             except DatabaseError as e:
-                logger.error("Error de base de datos al eliminar categoría: %s", e)
+                logger.error(
+                    "Error de base de datos al eliminar categoría: %s", e)
                 flash("Error inesperado al eliminar la categoría", "error")
             return redirect(url_for('main.config'))
 
@@ -336,7 +436,8 @@ def config():
                 logger.error(
                     "Error de validación al actualizar categoría: %s", e)
             except DatabaseError as e:
-                logger.error("Error de base de datos al actualizar categoría: %s", e)
+                logger.error(
+                    "Error de base de datos al actualizar categoría: %s", e)
                 flash("Error inesperado al actualizar la categoría", "error")
             return redirect(url_for('main.config'))
 
