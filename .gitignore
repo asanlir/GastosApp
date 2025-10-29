@@ -23,3 +23,5 @@ backups/
 scripts/backups/
 *.sql
 *.sql.gz
+*.sql.rar
+sync.log

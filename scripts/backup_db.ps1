@@ -15,6 +15,7 @@
 #   - MySQL Client instalado (mysqldump disponible en PATH)
 #   - Variables de entorno configuradas (ver .env)
 #   - Carpeta de backups creada (se crea automáticamente si no existe)
+#   - (Opcional) WinRAR o 7-Zip para comprimir backups
 
 param(
     [string]$BackupDir = "$PSScriptRoot\backups",
@@ -30,6 +31,28 @@ function Write-Log {
     Write-Host $logMessage
     Add-Content -Path $LogFile -Value $logMessage
 }
+
+# Función para cargar variables desde .env
+function Load-EnvFile {
+    param([string]$EnvPath)
+    
+    if (Test-Path $EnvPath) {
+        Write-Log "Cargando variables de entorno desde .env"
+        Get-Content $EnvPath | ForEach-Object {
+            if ($_ -match '^\s*([^#][^=]+)=(.+)$') {
+                $name = $matches[1].Trim()
+                $value = $matches[2].Trim()
+                # Remover comillas si existen
+                $value = $value -replace '^["'']|["'']$', ''
+                [Environment]::SetEnvironmentVariable($name, $value, "Process")
+            }
+        }
+    }
+}
+
+# Cargar .env si existe
+$envFile = Join-Path (Split-Path $PSScriptRoot -Parent) ".env"
+Load-EnvFile -EnvPath $envFile
 
 # Crear directorio de backups si no existe
 if (-not (Test-Path $BackupDir)) {
@@ -77,24 +100,70 @@ Write-Log "=== Iniciando backup $backupType de $DatabaseName ==="
 
 # Ejecutar mysqldump
 try {
-    $mysqldumpCmd = "mysqldump --host=$env:MYSQL_HOST --port=$env:MYSQL_PORT --user=$env:MYSQL_USER --password=$env:MYSQL_PASSWORD --databases $DatabaseName --single-transaction --routines --triggers > `"$backupFile`""
+    # Usar MYSQL_PWD para evitar exponer la contraseña en la línea de comandos
+    $env:MYSQL_PWD = $env:MYSQL_PASSWORD
     
-    # Ejecutar comando
-    cmd /c $mysqldumpCmd 2>&1 | Out-Null
+    $mysqldumpArgs = @(
+        "--host=$env:MYSQL_HOST",
+        "--port=$env:MYSQL_PORT",
+        "--user=$env:MYSQL_USER",
+        "--databases", $DatabaseName,
+        "--single-transaction",
+        "--triggers",
+        "--events",
+        "--no-tablespaces",  # Evita PROCESS privilege requirement
+        "--skip-lock-tables",  # Evita problemas de bloqueo
+        "--column-statistics=0",  # Evita problemas con INFORMATION_SCHEMA
+        "--result-file=`"$backupFile`""
+    )
     
-    if ($LASTEXITCODE -eq 0) {
+    # Ejecutar comando y capturar salida
+    $output = & mysqldump @mysqldumpArgs 2>&1
+    
+    if ($LASTEXITCODE -eq 0 -and (Test-Path $backupFile)) {
         $fileSize = (Get-Item $backupFile).Length / 1MB
         Write-Log "Backup creado exitosamente: $backupFile ($([math]::Round($fileSize, 2)) MB)"
         
-        # Comprimir backup
-        if (Get-Command "7z" -ErrorAction SilentlyContinue) {
-            7z a -sdel "$backupFileGz" "$backupFile" > $null
-            Write-Log "Backup comprimido: $backupFileGz"
-        } else {
-            Write-Log "7-Zip no encontrado, backup sin comprimir"
+        # Comprimir backup (intenta WinRAR primero, luego 7-Zip)
+        $compressed = $false
+        
+        # Intentar WinRAR
+        $winrarPath = "C:\Program Files\WinRAR\WinRAR.exe"
+        if (Test-Path $winrarPath) {
+            try {
+                & $winrarPath a -df -ep -m5 -inul "$backupFileGz" "$backupFile" 2>&1 | Out-Null
+                if ($LASTEXITCODE -eq 0) {
+                    # WinRAR con -df ya eliminó el archivo fuente
+                    if (Test-Path $backupFile) {
+                        Remove-Item $backupFile -Force
+                    }
+                    Write-Log "Backup comprimido con WinRAR: $backupFileGz"
+                    $compressed = $true
+                }
+            } catch {
+                Write-Log "Advertencia: Error al comprimir con WinRAR, intentando alternativa..."
+            }
+        }
+        
+        # Intentar 7-Zip si WinRAR no funcionó
+        if (-not $compressed -and (Get-Command "7z" -ErrorAction SilentlyContinue)) {
+            try {
+                7z a -sdel "$backupFileGz" "$backupFile" > $null
+                Write-Log "Backup comprimido con 7-Zip: $backupFileGz"
+                $compressed = $true
+            } catch {
+                Write-Log "Advertencia: Error al comprimir con 7-Zip"
+            }
+        }
+        
+        if (-not $compressed) {
+            Write-Log "Compresor no encontrado (WinRAR/7-Zip), backup sin comprimir"
         }
     } else {
         Write-Log "ERROR: Fallo al crear backup (código de salida: $LASTEXITCODE)"
+        if ($output) {
+            Write-Log "Detalles del error: $output"
+        }
         exit 1
     }
 } catch {
@@ -133,4 +202,17 @@ if ($monthlyBackups.Count -gt 12) {
 }
 
 Write-Log "=== Backup completado exitosamente ==="
+
+# Sincronizar a la nube si el script existe
+$syncScript = "$PSScriptRoot\sync_to_cloud.ps1"
+if (Test-Path $syncScript) {
+    Write-Log "Iniciando sincronización a la nube..."
+    try {
+        & $syncScript -BackupDir $BackupDir -ErrorAction Stop
+    }
+    catch {
+        Write-Log "Advertencia: Error al sincronizar a la nube: $_"
+    }
+}
+
 Write-Log ""
