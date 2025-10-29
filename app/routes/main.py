@@ -320,12 +320,20 @@ def config():
             try:
                 categoria_id = int(request.form["categoria_id"])
                 nuevo_nombre = request.form["editar_categoria"].strip()
+                logger.debug(
+                    f"Intentando editar categoría ID {categoria_id} con nuevo nombre: {nuevo_nombre}")
                 if nuevo_nombre and categorias_service.update_categoria(categoria_id, nuevo_nombre):
                     flash("Categoría actualizada correctamente", "success")
+                    logger.info(
+                        f"Categoría {categoria_id} actualizada a '{nuevo_nombre}'")
                 else:
                     flash("Error al actualizar la categoría", "error")
+                    logger.warning(
+                        f"Fallo al actualizar categoría {categoria_id}")
             except ValueError as e:
                 flash(str(e), "error")
+                logger.error(
+                    f"Error de validación al actualizar categoría: {e}")
             except Exception as e:
                 logger.error(f"Error al actualizar categoría: {e}")
                 flash("Error inesperado al actualizar la categoría", "error")

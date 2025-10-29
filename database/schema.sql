@@ -34,4 +34,6 @@ CREATE TABLE IF NOT EXISTS gastos (
     INDEX idx_anio (anio),
     INDEX idx_categoria_anio_mes (categoria, anio, mes),
     FOREIGN KEY (categoria) REFERENCES categorias(nombre)
+        ON UPDATE CASCADE
+        ON DELETE RESTRICT
 );

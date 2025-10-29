@@ -56,6 +56,7 @@ def add_categoria(nombre: str) -> bool:
 def update_categoria(categoria_id: int, nombre: str) -> bool:
     """
     Actualiza una categoría existente.
+    Los gastos asociados se actualizan automáticamente gracias a ON UPDATE CASCADE.
 
     Args:
         categoria_id: ID de la categoría a actualizar
@@ -65,7 +66,7 @@ def update_categoria(categoria_id: int, nombre: str) -> bool:
         True si la categoría fue actualizada correctamente, False en caso contrario
 
     Raises:
-        ValidationError: Si el nombre está vacío
+        ValidationError: Si el nombre está vacío o ya existe otra categoría con ese nombre
         DatabaseError: Si hay un error en la base de datos
     """
     if not nombre or not nombre.strip():
@@ -73,12 +74,31 @@ def update_categoria(categoria_id: int, nombre: str) -> bool:
 
     try:
         with cursor_context() as (conn, cursor):
-            cursor.execute(q_update_categoria(),
-                           (nombre.strip(), categoria_id))
+            # Verificar que la categoría existe
+            cursor.execute(
+                "SELECT nombre FROM categorias WHERE id = %s", (categoria_id,))
+            result = cursor.fetchone()
+
+            if not result:
+                return False
+
+            nombre_anterior = result['nombre']
+            nuevo_nombre = nombre.strip()
+
+            # Si el nombre no cambió, no hacer nada
+            if nombre_anterior == nuevo_nombre:
+                return True
+
+            # Actualizar la categoría (ON UPDATE CASCADE se encarga de los gastos)
+            cursor.execute(q_update_categoria(), (nuevo_nombre, categoria_id))
             conn.commit()
-            return cursor.rowcount > 0
+            return True
     except DatabaseError:
         raise
+    except pymysql.IntegrityError as e:
+        # Error de nombre duplicado (UNIQUE constraint)
+        raise ValidationError(
+            f"Ya existe una categoría con el nombre '{nombre.strip()}'") from e
     except pymysql.Error as e:
         raise DatabaseError(f"Error al actualizar categoría: {e}") from e
 

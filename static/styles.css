@@ -537,7 +537,16 @@ button {
 
 .no-bg img {
   vertical-align: middle;
-  margin-right: -30px;
+  margin-right: 0;
+  pointer-events: none; /* Asegurar que el click pase al botón */
+}
+
+/* Acciones en tabla de categorías */
+.actions {
+  display: inline-flex;
+  gap: 16px;
+  justify-content: center;
+  align-items: center;
 }
 
 .spacer {
@@ -827,4 +836,11 @@ button {
     transform: translateY(0);
     opacity: 1;
   }
+}
+
+/* Contenedores más estrechos en Configuración */
+.table-container.config-narrow {
+  width: 40%;
+  max-width: 720px;
+  min-width: 420px;
 }

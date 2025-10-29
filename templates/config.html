@@ -42,7 +42,7 @@
       {% endif %} {% endfor %} {% endif %} {% endwith %}
 
       <h2 id="Categorias">Gestión de Categorías</h2>
-      <div class="table-container">
+      <div class="table-container config-narrow">
         <table>
           <thead>
             <tr>
@@ -54,34 +54,37 @@
             {% for categoria in categorias %}
             <tr>
               <td class="center-text">{{ categoria.nombre }}</td>
-              <td>
-                <button
-                  type="button"
-                  class="btn btn-edit no-bg"
-                  onclick="openEditModal({{ categoria.id }}, {{ categoria.nombre|tojson }})"
-                >
-                  <img
-                    src="{{ url_for('static', filename='editar.png') }}"
-                    width="23"
-                    height="23"
-                    alt="Editar"
-                  />
-                </button>
-                <form method="POST" style="display: inline">
-                  <input
-                    type="hidden"
-                    name="eliminar_categoria"
-                    value="{{ categoria.id }}"
-                  />
-                  <button type="submit" class="btn btn-danger no-bg">
+              <td class="center-text">
+                <div class="actions">
+                  <button
+                    type="button"
+                    class="btn btn-edit no-bg btn-edit-categoria"
+                    data-id="{{ categoria.id }}"
+                    data-nombre="{{ categoria.nombre }}"
+                  >
                     <img
-                      src="{{ url_for('static', filename='eliminar.png') }}"
+                      src="{{ url_for('static', filename='editar.png') }}"
                       width="23"
                       height="23"
-                      alt="Eliminar"
+                      alt="Editar"
                     />
                   </button>
-                </form>
+                  <form method="POST" style="display: inline">
+                    <input
+                      type="hidden"
+                      name="eliminar_categoria"
+                      value="{{ categoria.id }}"
+                    />
+                    <button type="submit" class="btn btn-danger no-bg">
+                      <img
+                        src="{{ url_for('static', filename='eliminar.png') }}"
+                        width="23"
+                        height="23"
+                        alt="Eliminar"
+                      />
+                    </button>
+                  </form>
+                </div>
               </td>
             </tr>
             {% endfor %}
@@ -162,7 +165,7 @@
       </div>
 
       <h2 id="Presupuesto">Presupuesto Mensual</h2>
-      <div class="table-container">
+      <div class="table-container config-narrow">
         <table>
           <thead>
             <tr>
@@ -239,17 +242,47 @@
       }
 
       // Eventos para botones que abren modales
-      document
-        .getElementById("toggleCategoriaBtn")
-        .addEventListener("click", function () {
-          openModal("modalAddCategoria");
-        });
+      document.addEventListener("DOMContentLoaded", function () {
+        // Botón añadir categoría
+        document
+          .getElementById("toggleCategoriaBtn")
+          .addEventListener("click", function () {
+            openModal("modalAddCategoria");
+          });
 
-      document
-        .getElementById("togglePresupuestoBtn")
-        .addEventListener("click", function () {
-          openModal("modalPresupuesto");
+        // Botón actualizar presupuesto
+        document
+          .getElementById("togglePresupuestoBtn")
+          .addEventListener("click", function () {
+            openModal("modalPresupuesto");
+          });
+
+        // Event delegation para botones de editar categoría
+        document
+          .querySelectorAll(".btn-edit-categoria")
+          .forEach(function (btn) {
+            btn.addEventListener("click", function (e) {
+              e.preventDefault();
+              e.stopPropagation();
+              const categoriaId = this.getAttribute("data-id");
+              const categoriaNombre = this.getAttribute("data-nombre");
+              console.log("Editando categoría:", categoriaId, categoriaNombre); // Debug
+              openEditModal(categoriaId, categoriaNombre);
+            });
+          });
+
+        // Auto-ocultar mensajes flash de éxito después de 3 segundos
+        const flashMessages = document.querySelectorAll(".flash-message");
+        flashMessages.forEach(function (message) {
+          setTimeout(function () {
+            message.style.transition = "opacity 0.5s ease";
+            message.style.opacity = "0";
+            setTimeout(function () {
+              message.remove();
+            }, 500);
+          }, 3000);
         });
+      });
 
       // Cerrar modal al hacer clic fuera del contenido
       window.addEventListener("click", function (event) {
@@ -270,20 +303,6 @@
       function closeErrorAlert() {
         document.getElementById("errorAlert").style.display = "none";
       }
-
-      // Auto-ocultar mensajes flash de éxito después de 3 segundos
-      document.addEventListener("DOMContentLoaded", function () {
-        const flashMessages = document.querySelectorAll(".flash-message");
-        flashMessages.forEach(function (message) {
-          setTimeout(function () {
-            message.style.transition = "opacity 0.5s ease";
-            message.style.opacity = "0";
-            setTimeout(function () {
-              message.remove();
-            }, 500);
-          }, 3000);
-        });
-      });
     </script>
   </body>
 </html>
