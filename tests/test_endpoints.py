@@ -5,6 +5,9 @@ import pytest
 from datetime import datetime
 from app.database import cursor_context
 
+# Marcar todos los tests de este módulo como integration
+pytestmark = pytest.mark.integration
+
 
 @pytest.fixture
 def setup_test_db(app):

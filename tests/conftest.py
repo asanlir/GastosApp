@@ -16,6 +16,13 @@ pytest_plugins = [
 ]
 
 
+def pytest_configure(config):
+    """Registrar marcadores personalizados."""
+    config.addinivalue_line(
+        "markers", "integration: mark test as integration test requiring database"
+    )
+
+
 @pytest.fixture
 def app():
     """Fixture que crea una instancia de la app en modo testing."""
