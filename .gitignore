@@ -17,3 +17,9 @@ __pycache__/
 /.venv/
 venv/
 *.log
+
+# Backups de base de datos (sensibles, no subir)
+backups/
+scripts/backups/
+*.sql
+*.sql.gz
