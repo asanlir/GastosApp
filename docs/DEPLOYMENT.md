@@ -24,12 +24,12 @@ Esta guía cubre el deployment de la aplicación de **Gestión de Gastos** en di
 
 ### Software Requerido
 
-| Herramienta     | Versión Mínima | Propósito                |
-|-----------------|----------------|--------------------------|
-| Python          | 3.11+          | Runtime de aplicación    |
-| MySQL           | 8.0+           | Base de datos            |
-| Git             | 2.0+           | Control de versiones     |
-| pip             | 23.0+          | Gestor de paquetes       |
+| Herramienta | Versión Mínima | Propósito             |
+| ----------- | -------------- | --------------------- |
+| Python      | 3.11+          | Runtime de aplicación |
+| MySQL       | 8.0+           | Base de datos         |
+| Git         | 2.0+           | Control de versiones  |
+| pip         | 23.0+          | Gestor de paquetes    |
 
 ### Conocimientos Recomendados
 
@@ -313,7 +313,7 @@ CMD ["waitress-serve", "--host=0.0.0.0", "--port=8080", "app:app"]
 **Crear `docker-compose.yml`**:
 
 ```yaml
-version: '3.8'
+version: "3.8"
 
 services:
   web:
@@ -398,7 +398,7 @@ volumes:
 deploy:
   resources:
     limits:
-      cpus: '0.5'
+      cpus: "0.5"
       memory: 512M
 ```
 
@@ -569,6 +569,7 @@ python -c "import secrets; print(secrets.token_urlsafe(32))"
 ```
 
 **Output**:
+
 ```
 kR8nF3mQ7vL2pW9xE5tY1oU6sI4aZ0cB3jH8gD7fV2n
 ```
@@ -597,13 +598,13 @@ tail -f logs/app.log
 
 ### 6.2 Niveles de Log
 
-| Nivel     | Desarrollo | Testing | Producción |
-|-----------|------------|---------|------------|
-| DEBUG     | ✅         | ❌      | ❌         |
-| INFO      | ✅         | ✅      | ❌         |
-| WARNING   | ✅         | ✅      | ✅         |
-| ERROR     | ✅         | ✅      | ✅         |
-| CRITICAL  | ✅         | ✅      | ✅         |
+| Nivel    | Desarrollo | Testing | Producción |
+| -------- | ---------- | ------- | ---------- |
+| DEBUG    | ✅         | ❌      | ❌         |
+| INFO     | ✅         | ✅      | ❌         |
+| WARNING  | ✅         | ✅      | ✅         |
+| ERROR    | ✅         | ✅      | ✅         |
+| CRITICAL | ✅         | ✅      | ✅         |
 
 ---
 
@@ -723,6 +724,7 @@ exit
 ### 8.1 Error: "Can't connect to MySQL server"
 
 **Síntomas**:
+
 ```
 pymysql.err.OperationalError: (2003, "Can't connect to MySQL server")
 ```
@@ -730,15 +732,17 @@ pymysql.err.OperationalError: (2003, "Can't connect to MySQL server")
 **Causas y Soluciones**:
 
 1. **MySQL no está corriendo**:
+
    ```bash
    # Windows
    net start MySQL80
-   
+
    # Linux
    sudo systemctl start mysql
    ```
 
 2. **Credenciales incorrectas**:
+
    - Verificar `.env`
    - Probar conexión manual: `mysql -u gastos_user -p`
 
@@ -750,11 +754,13 @@ pymysql.err.OperationalError: (2003, "Can't connect to MySQL server")
 ### 8.2 Error: "Table doesn't exist"
 
 **Síntomas**:
+
 ```
 pymysql.err.ProgrammingError: (1146, "Table 'gastos_db.gastos' doesn't exist")
 ```
 
 **Solución**:
+
 ```bash
 # Importar schema
 mysql -u gastos_user -p gastos_db < database/schema.sql
@@ -765,6 +771,7 @@ mysql -u gastos_user -p gastos_db < database/schema.sql
 ### 8.3 Error: "Port 5000 already in use"
 
 **Síntomas**:
+
 ```
 OSError: [WinError 10048] Only one usage of each socket address
 ```
@@ -789,6 +796,7 @@ PORT=8080
 ### 8.4 Error: "ModuleNotFoundError"
 
 **Síntomas**:
+
 ```
 ModuleNotFoundError: No module named 'flask'
 ```
@@ -812,6 +820,7 @@ pip install -r requirements.txt
 ### 8.5 Error: "Secret key required"
 
 **Síntomas**:
+
 ```
 RuntimeError: The session is unavailable because no secret key was set.
 ```
@@ -833,11 +842,13 @@ SECRET_KEY=<key-generada>
 **Causas**:
 
 1. **Directorio `logs/` no existe**:
+
    ```bash
    mkdir logs
    ```
 
 2. **Permisos insuficientes**:
+
    ```bash
    # Linux
    chmod 755 logs/
@@ -855,11 +866,13 @@ SECRET_KEY=<key-generada>
 **Diagnóstico**:
 
 1. **Verificar índices**:
+
    ```sql
    SHOW INDEX FROM gastos;
    ```
 
 2. **Agregar índices faltantes**:
+
    ```bash
    mysql -u gastos_user -p gastos_db < database/add_indexes.sql
    ```

@@ -62,6 +62,7 @@ def mock_cursor():
 **Objetivo**: Probar funciones individuales en aislamiento.
 
 **Características**:
+
 - Mocks de dependencias externas
 - Ejecución rápida (< 1s total)
 - No requieren BD real
@@ -78,10 +79,10 @@ def test_get_gastos_by_mes_anio_success(mock_get_all):
     mock_get_all.return_value = [
         {"mes": "Octubre", "anio": 2025, "monto": 100.0}
     ]
-    
+
     # Act
     result = get_gastos_by_mes_anio("Octubre", 2025)
-    
+
     # Assert
     assert len(result) == 1
     assert result[0]["mes"] == "Octubre"
@@ -95,6 +96,7 @@ def test_get_gastos_by_mes_anio_success(mock_get_all):
 **Objetivo**: Probar interacción entre capas.
 
 **Características**:
+
 - Usan BD real o mockeada a nivel de conexión
 - Validan flujo completo
 - Más lentos (~10s total)
@@ -113,17 +115,17 @@ def test_database():
         user=db_config["user"],
         password=db_config["password"]
     )
-    
+
     with conn.cursor() as cursor:
         cursor.execute("CREATE DATABASE IF NOT EXISTS gastos_test")
         cursor.execute("USE gastos_test")
         # Ejecutar schema.sql
         with open("database/schema.sql") as f:
             cursor.execute(f.read())
-    
+
     conn.commit()
     yield db_config
-    
+
     # Teardown
     with conn.cursor() as cursor:
         cursor.execute("DROP DATABASE gastos_test")
@@ -153,7 +155,7 @@ def test_query_with_mock_cursor(mock_cursor):
     mock_cursor.fetchall.return_value = [
         (1, 1, "Compra", "Descripción", 50.0, "Octubre", 2025)
     ]
-    
+
     with patch("app.database.get_cursor", return_value=mock_cursor):
         result = get_all_gastos()
         assert len(result) == 1
@@ -167,7 +169,7 @@ def test_query_with_mock_cursor(mock_cursor):
 def test_database_connection(mock_connect):
     mock_conn = MagicMock()
     mock_connect.return_value = mock_conn
-    
+
     conn = get_connection()
     assert conn == mock_conn
 ```
@@ -188,7 +190,7 @@ def test_agregar_gasto_success():
     """Agregar gasto con datos válidos."""
     with patch("app.queries.insert_gasto") as mock_insert:
         mock_insert.return_value = 1
-        
+
         gasto_id = gastos_service.agregar_gasto(
             categoria_id=1,
             descripcion="Test",
@@ -196,7 +198,7 @@ def test_agregar_gasto_success():
             mes="Octubre",
             anio=2025
         )
-        
+
         assert gasto_id == 1
         mock_insert.assert_called_once()
 
@@ -216,7 +218,7 @@ def test_eliminar_categoria_con_gastos():
     """No permitir eliminar categoría con gastos asociados."""
     with patch("app.queries.categoria_tiene_gastos") as mock_check:
         mock_check.return_value = True
-        
+
         with pytest.raises(ValidationError):
             categorias_service.eliminar_categoria(1)
 
@@ -246,10 +248,10 @@ def test_get_all_gastos(mock_cursor):
     mock_cursor.fetchall.return_value = [
         (1, 1, "Compra", "Supermercado", 85.5, "Octubre", 2025)
     ]
-    
+
     with patch("app.database.get_cursor", return_value=mock_cursor):
         gastos = get_all_gastos()
-        
+
         assert len(gastos) == 1
         assert gastos[0]["monto"] == 85.5
         assert gastos[0]["categoria"] == "Compra"
@@ -257,7 +259,7 @@ def test_get_all_gastos(mock_cursor):
 def test_insert_gasto(mock_cursor):
     """Insertar nuevo gasto."""
     mock_cursor.lastrowid = 42
-    
+
     with patch("app.database.get_cursor", return_value=mock_cursor):
         gasto_id = insert_gasto(
             categoria_id=1,
@@ -266,7 +268,7 @@ def test_insert_gasto(mock_cursor):
             mes="Octubre",
             anio=2025
         )
-        
+
         assert gasto_id == 42
         mock_cursor.execute.assert_called_once()
 ```
@@ -283,7 +285,7 @@ def test_insert_gasto(mock_cursor):
 def test_index_get(client):
     """GET / devuelve dashboard."""
     response = client.get("/")
-    
+
     assert response.status_code == 200
     assert b"Agregar Gasto" in response.data
 
@@ -297,7 +299,7 @@ def test_index_post_agregar_gasto(client):
             "mes": "Octubre",
             "anio": "2025"
         })
-        
+
         assert response.status_code == 302  # Redirect
 
 def test_delete_gasto(client):
@@ -313,7 +315,7 @@ def test_edit_gasto_get(client):
             "id": 1, "categoria_id": 1, "descripcion": "Test",
             "monto": 100.0, "mes": "Octubre", "anio": 2025
         }
-        
+
         response = client.get("/edit/1")
         assert response.status_code == 200
         assert b"Editar Gasto" in response.data
@@ -334,9 +336,9 @@ def test_generar_grafico_torta():
         {"categoria": "Compra", "monto": 100.0},
         {"categoria": "Servicios", "monto": 200.0}
     ]
-    
+
     html = charts_service.generar_grafico_torta(gastos)
-    
+
     assert "<div>" in html
     assert "Compra" in html
     assert "Servicios" in html
@@ -346,9 +348,9 @@ def test_generar_grafico_barras():
     gastos = [
         {"categoria": "Compra", "monto": 100.0, "mes": "Octubre"}
     ]
-    
+
     html = charts_service.generar_grafico_barras(gastos)
-    
+
     assert "plotly" in html.lower()
 ```
 
@@ -389,6 +391,7 @@ pytest
 ```
 
 **Output esperado**:
+
 ```
 ======================== test session starts =========================
 collected 54 items
@@ -426,6 +429,7 @@ pytest -v
 ```
 
 **Output**:
+
 ```
 tests/test_services.py::test_agregar_gasto_success PASSED      [  1%]
 tests/test_services.py::test_agregar_gasto_invalid_monto PASSED [  3%]
@@ -457,6 +461,7 @@ open htmlcov/index.html   # macOS
 ```
 
 **Output esperado**:
+
 ```
 ---------- coverage: platform win32, python 3.11.9 -----------
 Name                               Stmts   Miss  Cover
@@ -540,10 +545,10 @@ def test_calcular_total():
         {"monto": 100.0},
         {"monto": 50.0}
     ]
-    
+
     # Act - Ejecutar función
     total = calcular_total(gastos)
-    
+
     # Assert - Verificar resultado
     assert total == 150.0
 ```
@@ -573,7 +578,7 @@ def test_excepcion_validation_error():
     """Verificar que se lance ValidationError."""
     with pytest.raises(ValidationError) as exc_info:
         validar_monto(-100.0)
-    
+
     assert "negativo" in str(exc_info.value).lower()
 ```
 
@@ -586,7 +591,7 @@ def test_logging(caplog):
     """Verificar que se genere log."""
     with caplog.at_level(logging.INFO):
         logger.info("Test log")
-    
+
     assert "Test log" in caplog.text
 ```
 
@@ -604,6 +609,7 @@ def test_con_debugging():
 ```
 
 **Comandos PDB**:
+
 - `n` → Next line
 - `s` → Step into
 - `c` → Continue
@@ -635,10 +641,10 @@ def test_multiples_llamadas():
             [{"id": 1}],  # Primera llamada
             [{"id": 2}]   # Segunda llamada
         ]
-        
+
         result1 = get_all_gastos()
         result2 = get_all_gastos()
-        
+
         assert result1[0]["id"] == 1
         assert result2[0]["id"] == 2
 ```
@@ -651,7 +657,7 @@ def test_multiples_llamadas():
 def test_manejo_de_error():
     with patch("app.queries.insert_gasto") as mock:
         mock.side_effect = DatabaseError("Error de BD")
-        
+
         with pytest.raises(DatabaseError):
             agregar_gasto(...)
 ```
@@ -664,17 +670,17 @@ def test_manejo_de_error():
 def test_verificar_llamadas():
     with patch("app.queries.insert_gasto") as mock:
         agregar_gasto(categoria_id=1, descripcion="Test", ...)
-        
+
         # Verificar que se llamó
         mock.assert_called_once()
-        
+
         # Verificar argumentos
         mock.assert_called_with(
             categoria_id=1,
             descripcion="Test",
             ...
         )
-        
+
         # Verificar número de llamadas
         assert mock.call_count == 1
 ```
@@ -690,7 +696,7 @@ def test_flash_message(client):
     """Verificar mensajes flash."""
     with client.session_transaction() as sess:
         sess["_flashes"] = [("success", "Test message")]
-    
+
     response = client.get("/")
     assert b"Test message" in response.data
 ```
@@ -722,25 +728,25 @@ on: [push, pull_request]
 jobs:
   test:
     runs-on: ubuntu-latest
-    
+
     steps:
-    - uses: actions/checkout@v2
-    
-    - name: Set up Python
-      uses: actions/setup-python@v2
-      with:
-        python-version: 3.11
-    
-    - name: Install dependencies
-      run: |
-        pip install -r requirements-dev.txt
-    
-    - name: Run tests
-      run: |
-        pytest --cov=app --cov-report=xml
-    
-    - name: Upload coverage
-      uses: codecov/codecov-action@v2
+      - uses: actions/checkout@v2
+
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.11
+
+      - name: Install dependencies
+        run: |
+          pip install -r requirements-dev.txt
+
+      - name: Run tests
+        run: |
+          pytest --cov=app --cov-report=xml
+
+      - name: Upload coverage
+        uses: codecov/codecov-action@v2
 ```
 
 ---
@@ -774,6 +780,7 @@ jobs:
 **Causa**: pytest no encuentra módulos de `app/`.
 
 **Solución**:
+
 ```bash
 # Asegurarse de tener __init__.py en todos los directorios
 touch tests/__init__.py
@@ -800,11 +807,13 @@ def mi_fixture():
 ### Tests Pasan Localmente pero Fallan en CI
 
 **Causas comunes**:
+
 - Variables de entorno faltantes
 - Dependencias de sistema diferentes
 - Zona horaria diferente
 
 **Solución**:
+
 ```yaml
 # .github/workflows/tests.yml
 env:

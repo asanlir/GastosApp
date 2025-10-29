@@ -34,12 +34,14 @@ def index():
 ```
 
 **Características**:
+
 - Blueprint Flask para modularidad
 - Validación de formularios
 - Manejo de flash messages
 - Renderizado de templates Jinja2
 
 **Flujo**:
+
 1. Usuario hace request → Flask Router
 2. Router ejecuta función de vista
 3. Vista llama a servicios
@@ -61,12 +63,14 @@ def add_gasto(categoria_id, descripcion, monto, mes, anio):
 ```
 
 **Módulos**:
+
 - `gastos_service.py`: CRUD de gastos
 - `categorias_service.py`: Gestión de categorías
 - `presupuesto_service.py`: Manejo de presupuestos
 - `charts_service.py`: Generación de gráficos
 
 **Ventajas**:
+
 - ✅ Reutilizable desde cualquier ruta
 - ✅ Testeable sin base de datos (mocks)
 - ✅ Lógica centralizada
@@ -89,12 +93,14 @@ def q_insert_gasto() -> Tuple[str, tuple]:
 ```
 
 **Características**:
+
 - Queries parametrizados (prevención SQL injection)
 - Retorna tupla `(query, params)`
 - Queries complejos con JOINs documentados
 - Constantes SQL centralizadas (`constants.py`)
 
 **Beneficios**:
+
 - ✅ Anti-SQL injection
 - ✅ Queries reutilizables
 - ✅ Fácil testing
@@ -120,6 +126,7 @@ def cursor_context():
 ```
 
 **Patrón**: Context Manager
+
 - Cierre automático de conexiones
 - Manejo de excepciones
 - Pool implícito de pymysql
@@ -141,6 +148,7 @@ def create_app(config_name='default'):
 ```
 
 **Beneficios**:
+
 - Múltiples instancias (dev, prod, test)
 - Configuración por entorno
 - Testing simplificado
@@ -157,6 +165,7 @@ routes → services → queries → database
 ```
 
 **Ventajas**:
+
 - Lógica de negocio reutilizable
 - Testing independiente
 - Cambios de BD no afectan rutas
@@ -248,11 +257,11 @@ except DatabaseError as e:
 
 ### Niveles por Entorno
 
-| Entorno    | Nivel   | Destino               |
-|------------|---------|------------------------|
-| Development| DEBUG   | Console + File         |
-| Production | WARNING | File only             |
-| Testing    | INFO    | Null                  |
+| Entorno     | Nivel   | Destino        |
+| ----------- | ------- | -------------- |
+| Development | DEBUG   | Console + File |
+| Production  | WARNING | File only      |
+| Testing     | INFO    | Null           |
 
 ### Configuración
 
@@ -315,7 +324,7 @@ def test_add_gasto(mock_cursor_context):
     # Mock cursor
     mock_cursor = MagicMock()
     mock_cursor_context.return_value.__enter__.return_value = (None, mock_cursor)
-    
+
     # Test sin BD real
     result = gastos_service.add_gasto(...)
     assert result is True
@@ -331,11 +340,11 @@ def test_add_gasto(mock_cursor_context):
 # app/config.py
 class BaseConfig:
     DB_HOST = os.getenv('DB_HOST')
-    
+
 class DevelopmentConfig(BaseConfig):
     DEBUG = True
     LOG_LEVEL = 'DEBUG'
-    
+
 class ProductionConfig(BaseConfig):
     DEBUG = False
     LOG_LEVEL = 'WARNING'
@@ -359,6 +368,7 @@ LOG_LEVEL=INFO
 ### Prevención SQL Injection
 
 ✅ **Queries parametrizados**:
+
 ```python
 # NUNCA:
 f"SELECT * FROM gastos WHERE mes = '{mes}'"
@@ -394,11 +404,11 @@ if monto <= 0:
 
 ### Bottlenecks Potenciales
 
-| Componente        | Riesgo | Solución                    |
-|-------------------|--------|-----------------------------|
-| Gráficos Plotly   | Alto   | Limitar a 12 meses          |
-| Queries históricos| Medio  | Índices + LIMIT             |
-| Uploads grandes   | Bajo   | No aplica (solo formularios)|
+| Componente         | Riesgo | Solución                     |
+| ------------------ | ------ | ---------------------------- |
+| Gráficos Plotly    | Alto   | Limitar a 12 meses           |
+| Queries históricos | Medio  | Índices + LIMIT              |
+| Uploads grandes    | Bajo   | No aplica (solo formularios) |
 
 ---
 
@@ -406,11 +416,11 @@ if monto <= 0:
 
 ### Crecimiento Previsto
 
-| Métrica            | Actual      | 1 año      | 5 años     |
-|--------------------|-------------|------------|------------|
-| Gastos/mes         | ~50         | ~600       | ~3,000     |
-| Usuarios           | 1 (local)   | 1          | 1          |
-| Tamaño BD          | < 1 MB      | ~10 MB     | ~50 MB     |
+| Métrica    | Actual    | 1 año  | 5 años |
+| ---------- | --------- | ------ | ------ |
+| Gastos/mes | ~50       | ~600   | ~3,000 |
+| Usuarios   | 1 (local) | 1      | 1      |
+| Tamaño BD  | < 1 MB    | ~10 MB | ~50 MB |
 
 ### Estrategias
 

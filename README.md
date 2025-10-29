@@ -10,6 +10,7 @@ Sistema web completo para gestionar gastos personales/familiares con reportes vi
 ## 📋 Descripción
 
 Aplicación web Flask para el seguimiento y análisis de gastos domésticos con:
+
 - **Dashboard intuitivo** con resumen mensual de gastos
 - **Gráficos interactivos** (Plotly) para visualizar tendencias
 - **Presupuestos configurables** con alertas de sobrecosto
@@ -23,29 +24,34 @@ Ideal para llevar control de gastos familiares, analizar patrones de consumo y m
 ## ✨ Características Principales
 
 ### 🏠 Dashboard de Gastos
+
 - Vista mensual de todos los gastos con totales
 - Filtros por mes, año y categoría
 - Comparación automática con presupuesto
 - Alertas visuales de sobrecosto
 
 ### 📊 Reportes y Estadísticas
+
 - **Gráfico de torta**: Distribución de gastos por categoría
 - **Gráficos de barras**: Evolución histórica (12 meses)
 - **Comparativa presupuesto**: Gastos vs presupuesto mensual
 - Análisis por categorías: Compra, Facturas, Gasolina, etc.
 
 ### ⚙️ Configuración Flexible
+
 - Gestión de categorías personalizables
 - Presupuestos mensuales configurables
 - Histórico completo de gastos
 
 ### 💾 Sistema de Backups
+
 - Backups automáticos programados (3:00 AM)
 - Compresión con WinRAR
 - Sincronización automática a OneDrive
 - Rotación inteligente (7 diarios / 4 semanales / 12 mensuales)
 
 ### 🧪 Calidad de Código
+
 - 62 tests (54 unitarios + 8 de integración)
 - Cobertura completa de servicios y queries
 - CI/CD con GitHub Actions
@@ -252,6 +258,7 @@ cd scripts
 ```
 
 Esto creará una tarea programada de Windows que:
+
 - Se ejecuta diariamente a las 3:00 AM
 - Hace backup de la base de datos con `mysqldump`
 - Comprime el backup con WinRAR
@@ -313,6 +320,7 @@ app = create_app('testing')      # TESTING=True, test_economia_db
 ### Logging
 
 Los logs se guardan en `logs/gastos.log` con rotación automática:
+
 - **DEBUG**: Desarrollo (todas las operaciones)
 - **INFO**: Producción (operaciones importantes)
 - **WARNING**: Solo errores y advertencias
@@ -380,6 +388,7 @@ Las contribuciones son bienvenidas! Por favor:
 ## 📝 Changelog
 
 ### v2.0.0 (2025-01-29)
+
 - ✨ **Refactor completo** a arquitectura modular
 - 🧪 Suite completa de 62 tests
 - 📊 Sistema de logging robusto
@@ -388,6 +397,7 @@ Las contribuciones son bienvenidas! Por favor:
 - 📚 Documentación completa
 
 ### v1.0.0 (2024-xx-xx)
+
 - 🎉 Versión inicial monolítica
 
 ---
@@ -401,6 +411,7 @@ Este proyecto está bajo la Licencia MIT. Ver archivo `LICENSE` para más detall
 ## 👤 Autor
 
 **Alejandro Sánchez**
+
 - GitHub: [@asanlir](https://github.com/asanlir)
 - Repository: [gastos_refactor](https://github.com/asanlir/gastos_refactor)
 
@@ -418,6 +429,7 @@ Este proyecto está bajo la Licencia MIT. Ver archivo `LICENSE` para más detall
 ## 📞 Soporte
 
 Si encuentras algún problema o tienes sugerencias:
+
 - 🐛 [Reportar un bug](https://github.com/asanlir/gastos_refactor/issues)
 - 💡 [Solicitar una feature](https://github.com/asanlir/gastos_refactor/issues)
 - 📧 Contacto: [Crear issue en GitHub]
