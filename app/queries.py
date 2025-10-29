@@ -252,9 +252,9 @@ def q_insert_presupuesto() -> str:
         - monto (float): Monto del presupuesto.
 
     Returns:
-        SQL INSERT para presupuesto.
+        SQL INSERT para presupuesto (incluye fecha_cambio con NOW()).
     """
-    return "INSERT INTO presupuesto (mes, anio, monto) VALUES (%s, %s, %s);"
+    return "INSERT INTO presupuesto (mes, anio, monto, fecha_cambio) VALUES (%s, %s, %s, NOW());"
 
 
 def q_sum_gastos_hasta_mes() -> str:

@@ -51,11 +51,11 @@
             <h1>Seguimiento cuentas Pino</h1>
         </header>    
 
-        <!-- Mostrar mensajes flash -->
+        <!-- Mostrar mensajes flash como pop-ups temporales -->
         {% with messages = get_flashed_messages(with_categories=true) %}
             {% if messages %}
                 {% for category, message in messages %}
-                    <div class="alert alert-{{ category }}">{{ message }}</div>
+                    <div class="alert alert-{{ category }} flash-message">{{ message }}</div>
                 {% endfor %}
             {% endif %}
         {% endwith %}
@@ -95,25 +95,31 @@
             {% endif %}
 
             <!-- Total de gastos debajo de la tabla -->
-            <p><strong>Total de gastos:</strong> {{ total_gastos }} €</p>
+            <p><strong>Total de gastos:</strong> {{ "%.2f"|format(total_gastos) }} €</p>
 
             <!-- Presupuesto restante -->
             <p><strong>Presupuesto restante:</strong> 
                 <span {% if presupuesto_mensual - total_gastos < 0 %} style="color: red;" {% endif %}>
-                    {{ presupuesto_mensual - total_gastos }} €
+                    {{ "%.2f"|format(presupuesto_mensual - total_gastos) }} €
                 </span>
             </p>
 
             <p><strong>Acumulado:</strong> 
                 <span {% if acumulado_presupuesto < 0 %} style="color: red;" {% endif %}>
-                    {{ acumulado_presupuesto }} €
+                    {{ "%.2f"|format(acumulado_presupuesto) }} €
                 </span>
             </p>
+        </div>
 
-            <!-- Formulario para agregar nuevo gasto -->
-            <div class="form-container">
-                <h2>Agregar Gasto</h2>
-                <form action="/" method="post" class="gasto-form">
+        <!-- Botón para mostrar modal de formulario -->
+        <button id="toggleFormBtn" class="btn-add-gasto">Añadir Gasto</button>
+
+        <!-- Modal para añadir gasto -->
+        <div id="modalGasto" class="modal" style="display: none;">
+            <div class="modal-content">
+                <span class="modal-close">&times;</span>
+                <h2>Añadir Nuevo Gasto</h2>
+                <form action="/" method="POST" class="modal-form">
                     <div class="form-group">
                         <label for="categoria">Categoría:</label>
                         <select name="categoria" id="categoria" required>
@@ -129,72 +135,80 @@
                     </div>
 
                     <div class="form-group">
-                        <label for="monto">Monto:</label>
+                        <label for="monto">Monto (€):</label>
                         <input type="number" name="monto" id="monto" step="0.01" required>
                     </div>
 
-                    <input type="hidden" name="mes" value="{{ mes_actual }}">
-                    <input type="hidden" name="anio" value="{{ anio_actual }}">
+                    <div class="form-group">
+                        <label for="mes">Mes:</label>
+                        <select name="mes" id="mes" required>
+                            <option value="Enero" {% if mes_actual == 'Enero' %}selected{% endif %}>Enero</option>
+                            <option value="Febrero" {% if mes_actual == 'Febrero' %}selected{% endif %}>Febrero</option>
+                            <option value="Marzo" {% if mes_actual == 'Marzo' %}selected{% endif %}>Marzo</option>
+                            <option value="Abril" {% if mes_actual == 'Abril' %}selected{% endif %}>Abril</option>
+                            <option value="Mayo" {% if mes_actual == 'Mayo' %}selected{% endif %}>Mayo</option>
+                            <option value="Junio" {% if mes_actual == 'Junio' %}selected{% endif %}>Junio</option>
+                            <option value="Julio" {% if mes_actual == 'Julio' %}selected{% endif %}>Julio</option>
+                            <option value="Agosto" {% if mes_actual == 'Agosto' %}selected{% endif %}>Agosto</option>
+                            <option value="Septiembre" {% if mes_actual == 'Septiembre' %}selected{% endif %}>Septiembre</option>
+                            <option value="Octubre" {% if mes_actual == 'Octubre' %}selected{% endif %}>Octubre</option>
+                            <option value="Noviembre" {% if mes_actual == 'Noviembre' %}selected{% endif %}>Noviembre</option>
+                            <option value="Diciembre" {% if mes_actual == 'Diciembre' %}selected{% endif %}>Diciembre</option>
+                        </select>
+                    </div>
 
-                    <button type="submit">Agregar Gasto</button>
+                    <div class="form-group">
+                        <label for="anio">Año:</label>
+                        <input type="number" name="anio" id="anio" value="{{ anio_actual }}" required>
+                    </div>
+
+                    <div class="form-buttons">
+                        <button type="submit" class="btn-submit">Guardar Gasto</button>
+                        <button type="button" class="btn-cancel" id="cancelBtn">Cancelar</button>
+                    </div>
                 </form>
             </div>
-                </span>
-            </p>
         </div>
 
-        <!-- Botón para mostrar/ocultar formulario -->
-        <button id="toggleFormBtn">Añadir Gasto</button>
-
-        <!-- Formulario oculto -->
-        <div id="addGastoForm" style="display: none;">
-            <form action="/" method="POST">
-                <label for="categoria">Categoría:</label>
-                <select name="categoria" required>
-                    {% for categoria in categorias %}
-                        <option value="{{ categoria.id }}">{{ categoria.nombre }}</option>
-                    {% endfor %}
-                </select>
-                <br>
-
-                <label for="descripcion">Descripción:</label>
-                <input type="text" name="descripcion">
-                <br>
-
-                <label for="monto">Monto:</label>
-                <input type="number" name="monto" step="0.01" required>
-                <br>
-
-                <label for="mes">Mes:</label>
-                <select name="mes" id="mes">
-                    <option value="Enero" {% if mes_actual == 'Enero' %}selected{% endif %}>Enero</option>
-                    <option value="Febrero" {% if mes_actual == 'Febrero' %}selected{% endif %}>Febrero</option>
-                    <option value="Marzo" {% if mes_actual == 'Marzo' %}selected{% endif %}>Marzo</option>
-                    <option value="Abril" {% if mes_actual == 'Abril' %}selected{% endif %}>Abril</option>
-                    <option value="Mayo" {% if mes_actual == 'Mayo' %}selected{% endif %}>Mayo</option>
-                    <option value="Junio" {% if mes_actual == 'Junio' %}selected{% endif %}>Junio</option>
-                    <option value="Julio" {% if mes_actual == 'Julio' %}selected{% endif %}>Julio</option>
-                    <option value="Agosto" {% if mes_actual == 'Agosto' %}selected{% endif %}>Agosto</option>
-                    <option value="Septiembre" {% if mes_actual == 'Septiembre' %}selected{% endif %}>Septiembre</option>
-                    <option value="Octubre" {% if mes_actual == 'Octubre' %}selected{% endif %}>Octubre</option>
-                    <option value="Noviembre" {% if mes_actual == 'Noviembre' %}selected{% endif %}>Noviembre</option>
-                    <option value="Diciembre" {% if mes_actual == 'Diciembre' %}selected{% endif %}>Diciembre</option>
-                </select>
-                <br>
-
-                <label for="anio">Año:</label>
-                <input type="number" name="anio" value="{{ anio_actual }}" required>
-                <br>
-
-                <button type="submit">Guardar Gasto</button>
-            </form>
-        </div>
-
-        <!-- JavaScript para mostrar/ocultar formulario -->
+        <!-- JavaScript -->
         <script>
-            document.getElementById("toggleFormBtn").addEventListener("click", function() {
-                var form = document.getElementById("addGastoForm");
-                form.style.display = (form.style.display === "none") ? "block" : "none";
+            // Modal de formulario
+            const modal = document.getElementById("modalGasto");
+            const btnAbrir = document.getElementById("toggleFormBtn");
+            const btnCerrar = document.querySelector(".modal-close");
+            const btnCancelar = document.getElementById("cancelBtn");
+
+            btnAbrir.addEventListener("click", function() {
+                modal.style.display = "flex";
+            });
+
+            btnCerrar.addEventListener("click", function() {
+                modal.style.display = "none";
+            });
+
+            btnCancelar.addEventListener("click", function() {
+                modal.style.display = "none";
+            });
+
+            // Cerrar modal al hacer clic fuera del contenido
+            window.addEventListener("click", function(event) {
+                if (event.target === modal) {
+                    modal.style.display = "none";
+                }
+            });
+
+            // Auto-ocultar mensajes flash después de 3 segundos
+            document.addEventListener("DOMContentLoaded", function() {
+                const flashMessages = document.querySelectorAll(".flash-message");
+                flashMessages.forEach(function(message) {
+                    setTimeout(function() {
+                        message.style.transition = "opacity 0.5s ease";
+                        message.style.opacity = "0";
+                        setTimeout(function() {
+                            message.remove();
+                        }, 500);
+                    }, 3000);
+                });
             });
         </script>
 

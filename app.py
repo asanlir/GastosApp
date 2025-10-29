@@ -9,6 +9,7 @@ Uso:
 
 La aplicación se ejecuta en http://127.0.0.1:5000 con debug=True.
 """
+import os
 import webbrowser
 from threading import Thread
 from app import create_app
@@ -26,4 +27,15 @@ def abrir_navegador():
 
 if __name__ == "__main__":
     app = create_app('development')
+
+    # Abrir navegador solo en el proceso principal (evita duplicación con el reloader)
+    if os.environ.get('WERKZEUG_RUN_MAIN') == 'true':
+        import time
+
+        def delayed_browser():
+            time.sleep(1.5)
+            abrir_navegador()
+
+        Thread(target=delayed_browser, daemon=True).start()
+
     app.run(debug=True)

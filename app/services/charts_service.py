@@ -56,18 +56,21 @@ def generate_gas_chart(anio: int) -> str:
     df = ensure_all_months(df_from_rows(datos_gasolina),
                            month_col="mes", value_cols=["total"])
 
+    # Añadir formato de mes con año abreviado (Enero '25)
+    df["mes_formateado"] = df["mes"].apply(lambda m: f"{m} '{str(anio)[-2:]}")
+
     fig = go.Figure()
     fig.add_trace(go.Bar(
-        x=df["mes"],
+        x=df["mes_formateado"],
         y=df["total"],
         name="Gasolina",
-        marker_color="lightblue",
+        marker_color="#3498db",  # Azul coherente con el tema de la app
         hovertemplate="%{y:.2f}€<extra></extra>"
     ))
 
     fig.update_layout(
-        title=f"Gastos en Gasolina {anio}",
-        yaxis_title="Euros",
+        title="Gastos Gasolina",
+        yaxis_title="Monto (€)",
         xaxis_title="Mes",
         xaxis=dict(type="category", tickangle=-30),
         showlegend=False
@@ -100,8 +103,9 @@ def generate_category_bar_chart(categoria: str, anio: int) -> str:
     df = df_fechas.merge(df, on=["anio", "mes"], how="left").fillna(0)
     set_month_order(df, "mes")
     df = df.sort_values(["anio", "mes"])
+    # Formato coherente: "Enero '25"
     df["orden_fecha"] = df.apply(
-        lambda row: f"{row['mes']} {row['anio']}", axis=1)
+        lambda row: f"{row['mes']} '{str(row['anio'])[-2:]}", axis=1)
 
     meses_completos = df['orden_fecha'].unique()
     orden_descripciones = sorted(
@@ -120,7 +124,7 @@ def generate_category_bar_chart(categoria: str, anio: int) -> str:
             y=df_desc['total'],
             name=descripcion,
             visible=True,
-            hovertemplate=f"{descripcion} {{y:.2f}}€<extra></extra>"
+            hovertemplate=f"{descripcion}: %{{y:.2f}}€<extra></extra>"
         ))
 
     fig.update_layout(
@@ -175,32 +179,40 @@ def generate_comparison_chart(anio: int) -> Dict[str, Any]:
     df["presupuesto_mensual"] = df["presupuesto_mensual"].fillna(0)
 
     # Calcular métricas
-    df["excede_presupuesto"] = df["total_sin_alquiler"] > df["presupuesto_mensual"]
+    # La comparación debe hacerse con el gasto TOTAL (incluyendo alquiler)
+    df["excede_presupuesto"] = df["total_con_alquiler"] > df["presupuesto_mensual"]
     df["saldo_mensual"] = df["presupuesto_mensual"] - \
         df["total_con_alquiler"]  # Usa total_con_alquiler
     df["saldo_acumulado"] = df["saldo_mensual"].cumsum()
+
+    # Marcar meses con gastos (para mostrar solo esos en la línea)
+    df["tiene_gastos"] = df["total_con_alquiler"] > 0
 
     # Ordenar meses
     set_month_order(df, "mes")
     df = df.sort_values("mes")
 
+    # Formato coherente: "Enero '25"
+    df["mes_formateado"] = df["mes"].apply(lambda m: f"{m} '{str(anio)[-2:]}")
+
     # Crear gráfico
     fig = go.Figure()
 
-    # Barras de gastos variables (sin alquiler)
+    # Barras de gastos variables (sin alquiler) - colores según si excede presupuesto TOTAL
     colores = ["red" if excede else "green" for excede in df["excede_presupuesto"]]
     fig.add_trace(go.Bar(
-        x=df["mes"],
+        x=df["mes_formateado"],
         y=df["total_sin_alquiler"],
         name="Gastos (sin alquiler)",
         marker_color=colores,
         hovertemplate="%{y:.2f}€<extra></extra>"
     ))
 
-    # Línea de saldo presupuestario acumulado
+    # Línea de saldo presupuestario acumulado - solo para meses con gastos
+    df_con_gastos = df[df["tiene_gastos"]].copy()
     fig.add_trace(go.Scatter(
-        x=df["mes"],
-        y=df["saldo_acumulado"],
+        x=df_con_gastos["mes_formateado"],
+        y=df_con_gastos["saldo_acumulado"],
         name="Saldo Presupuestario Acumulado",
         mode="lines+markers",
         line=dict(color="blue", width=2),
@@ -208,11 +220,11 @@ def generate_comparison_chart(anio: int) -> Dict[str, Any]:
     ))
 
     fig.update_layout(
-        title=f"Comparación con Presupuesto {anio}",
-        yaxis_title="Euros",
-        xaxis_title="Mes",
+        title="Evolución de Presupuesto y Acumulado",
+        yaxis_title="Monto (€)",
+        xaxis_title="",
         xaxis=dict(type="category", tickangle=-30),
-        showlegend=True,
+        showlegend=False,
         barmode="relative"
     )
 
