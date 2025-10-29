@@ -15,6 +15,7 @@
 #   - MySQL Client instalado (mysqldump disponible en PATH)
 #   - Variables de entorno configuradas (ver .env)
 #   - Carpeta de backups creada (se crea automáticamente si no existe)
+#   - (Opcional) WinRAR o 7-Zip para comprimir backups
 
 param(
     [string]$BackupDir = "$PSScriptRoot\backups",
@@ -86,12 +87,37 @@ try {
         $fileSize = (Get-Item $backupFile).Length / 1MB
         Write-Log "Backup creado exitosamente: $backupFile ($([math]::Round($fileSize, 2)) MB)"
         
-        # Comprimir backup
-        if (Get-Command "7z" -ErrorAction SilentlyContinue) {
-            7z a -sdel "$backupFileGz" "$backupFile" > $null
-            Write-Log "Backup comprimido: $backupFileGz"
-        } else {
-            Write-Log "7-Zip no encontrado, backup sin comprimir"
+        # Comprimir backup (intenta WinRAR primero, luego 7-Zip)
+        $compressed = $false
+        
+        # Intentar WinRAR
+        $winrarPath = "C:\Program Files\WinRAR\WinRAR.exe"
+        if (Test-Path $winrarPath) {
+            try {
+                & $winrarPath a -df -ep -m5 -inul "$backupFileGz" "$backupFile" 2>&1 | Out-Null
+                if ($LASTEXITCODE -eq 0) {
+                    Remove-Item $backupFile -Force
+                    Write-Log "Backup comprimido con WinRAR: $backupFileGz"
+                    $compressed = $true
+                }
+            } catch {
+                Write-Log "Advertencia: Error al comprimir con WinRAR, intentando alternativa..."
+            }
+        }
+        
+        # Intentar 7-Zip si WinRAR no funcionó
+        if (-not $compressed -and (Get-Command "7z" -ErrorAction SilentlyContinue)) {
+            try {
+                7z a -sdel "$backupFileGz" "$backupFile" > $null
+                Write-Log "Backup comprimido con 7-Zip: $backupFileGz"
+                $compressed = $true
+            } catch {
+                Write-Log "Advertencia: Error al comprimir con 7-Zip"
+            }
+        }
+        
+        if (-not $compressed) {
+            Write-Log "Compresor no encontrado (WinRAR/7-Zip), backup sin comprimir"
         }
     } else {
         Write-Log "ERROR: Fallo al crear backup (código de salida: $LASTEXITCODE)"
@@ -133,4 +159,17 @@ if ($monthlyBackups.Count -gt 12) {
 }
 
 Write-Log "=== Backup completado exitosamente ==="
+
+# Sincronizar a la nube si el script existe
+$syncScript = "$PSScriptRoot\sync_to_cloud.ps1"
+if (Test-Path $syncScript) {
+    Write-Log "Iniciando sincronización a la nube..."
+    try {
+        & $syncScript -BackupDir $BackupDir -ErrorAction Stop
+    }
+    catch {
+        Write-Log "Advertencia: Error al sincronizar a la nube: $_"
+    }
+}
+
 Write-Log ""

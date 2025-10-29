@@ -52,9 +52,10 @@ $settings = New-ScheduledTaskSettingsSet `
     -DontStopOnIdleEnd
 
 # Crear principal (usuario actual)
+# S4U permite ejecutar aunque el usuario no esté logueado
 $principal = New-ScheduledTaskPrincipal `
     -UserId "$env:USERDOMAIN\$env:USERNAME" `
-    -LogonType ServiceAccount `
+    -LogonType S4U `
     -RunLevel Limited
 
 # Registrar la tarea

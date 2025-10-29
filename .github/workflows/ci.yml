@@ -4,7 +4,7 @@ on:
   push:
     branches:
       - main
-      - 'feature/**'
+      - "feature/**"
   pull_request:
     branches:
       - main
@@ -12,33 +12,33 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
-    
+
     strategy:
       matrix:
-        python-version: ['3.11']
-    
+        python-version: ["3.11"]
+
     steps:
       - name: Checkout código
         uses: actions/checkout@v4
-      
+
       - name: Configurar Python ${{ matrix.python-version }}
         uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
-          cache: 'pip'
-      
+          cache: "pip"
+
       - name: Instalar dependencias
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements-dev.txt
-      
+
       - name: Ejecutar tests
         run: |
           python -m pytest tests/ -v --tb=short -m "not integration"
         env:
           # Variables de entorno para tests (usando DB de prueba)
           TESTING: true
-      
+
       - name: Verificar código con flake8
         run: |
           flake8 app/ tests/ --count --select=E9,F63,F7,F82 --show-source --statistics
