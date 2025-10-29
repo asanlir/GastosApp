@@ -3,8 +3,8 @@ Funciones auxiliares utilizadas en toda la aplicación.
 """
 from datetime import datetime
 from typing import Any, Dict, Optional, Tuple, TypeVar, Union
-import mysql.connector
-from mysql.connector.cursor import MySQLCursor
+import pymysql
+from pymysql.cursors import DictCursor
 
 from .constants import MESES
 
@@ -65,7 +65,7 @@ def get_current_month_year() -> Tuple[str, int]:
     return MESES[now.month - 1], now.year
 
 
-def execute_query(cursor: MySQLCursor, query: str, params: tuple = ()) -> None:
+def execute_query(cursor: DictCursor, query: str, params: tuple = ()) -> None:
     """
     Ejecuta una consulta SQL de manera segura.
 
@@ -76,7 +76,7 @@ def execute_query(cursor: MySQLCursor, query: str, params: tuple = ()) -> None:
     """
     try:
         cursor.execute(query, params)
-    except mysql.connector.Error as err:
+    except pymysql.Error as err:
         print(f"Error al ejecutar la consulta: {err}")
         raise
 
