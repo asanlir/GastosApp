@@ -3,9 +3,10 @@ Tests unitarios para el módulo de services.
 
 Usan mocks de base de datos para aislar la lógica de negocio.
 """
-import pytest
 from unittest.mock import patch, MagicMock
+import pytest
 from app.services import gastos_service, presupuesto_service, categorias_service
+from app.exceptions import ValidationError, DatabaseError
 
 
 class TestGastosService:
@@ -101,16 +102,14 @@ class TestGastosService:
 
     @patch('app.services.gastos_service.cursor_context')
     def test_add_gasto_categoria_no_existe(self, mock_cursor_context):
-        """Test agregar gasto con categoría inexistente."""
+        """Test agregar gasto con categoría inexistente lanza ValidationError."""
         mock_cursor = MagicMock()
         mock_cursor.fetchone.return_value = None
         mock_cursor_context.return_value.__enter__.return_value = (
             None, mock_cursor)
 
-        resultado = gastos_service.add_gasto(
-            '999', 'Test', 100.0, 'Octubre', 2025)
-
-        assert resultado is False
+        with pytest.raises(ValidationError, match="Categoría con ID 999 no existe"):
+            gastos_service.add_gasto('999', 'Test', 100.0, 'Octubre', 2025)
 
     @patch('app.services.gastos_service.cursor_context')
     def test_update_gasto_exitoso(self, mock_cursor_context):

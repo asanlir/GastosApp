@@ -2,14 +2,13 @@
 Script para buscar datos en todos los logs binarios disponibles.
 """
 import subprocess
-import re
 
 print("Buscando logs con datos de gastos, categorías y presupuestos...")
 print("=" * 80)
 
 # Obtener lista de todos los logs
 cmd = ['mysql', '-u', 'root', '-p', '-e', 'SHOW BINARY LOGS;']
-result = subprocess.run(cmd, capture_output=True, text=True)
+result = subprocess.run(cmd, capture_output=True, text=True, check=False)
 
 if result.returncode != 0:
     print("Error obteniendo lista de logs")
@@ -29,7 +28,7 @@ for log in logs:
     # Buscar eventos Write_rows (INSERT) en cada log
     cmd = ['mysql', '-u', 'root', '-p', '-e',
            f"SHOW BINLOG EVENTS IN '{log}';"]
-    result = subprocess.run(cmd, capture_output=True, text=True)
+    result = subprocess.run(cmd, capture_output=True, text=True, check=False)
 
     if result.returncode == 0:
         if 'Write_rows' in result.stdout or 'Update_rows' in result.stdout:

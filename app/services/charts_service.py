@@ -48,8 +48,6 @@ def generate_pie_chart(mes: str, anio: int) -> Optional[str]:
 
 def generate_gas_chart(anio: int) -> str:
     """Generate simple bar chart for gas expenses for a specific year."""
-    meses = get_months()
-
     with cursor_context() as ((_, cursor)):
         cursor.execute(q_gasolina_por_mes(), (anio,))
         datos_gasolina = cursor.fetchall()

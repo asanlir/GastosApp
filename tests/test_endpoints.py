@@ -10,7 +10,7 @@ pytestmark = pytest.mark.integration
 
 
 @pytest.fixture
-def setup_test_db(app):
+def setup_test_db(_app):  # noqa: F811
     """Fixture que inicializa la base de datos de prueba con datos básicos."""
     # Crear tablas y datos de prueba
     with cursor_context() as (conn, cursor):
@@ -82,7 +82,7 @@ def setup_test_db(app):
         conn.commit()
 
 
-def test_index_get(client, setup_test_db):
+def test_index_get(client, setup_test_db):  # noqa: F811
     """Test que la página principal carga correctamente."""
     response = client.get('/')
     assert response.status_code == 200
@@ -90,7 +90,7 @@ def test_index_get(client, setup_test_db):
     assert b'Presupuesto' in response.data
 
 
-def test_crear_gasto_valido(client, setup_test_db):
+def test_crear_gasto_valido(client, setup_test_db):  # noqa: F811
     """Test que se puede crear un gasto con datos válidos."""
     data = {
         'categoria': '1',  # ID de la categoría Alquiler
@@ -104,7 +104,7 @@ def test_crear_gasto_valido(client, setup_test_db):
     assert b'Gasto agregado correctamente' in response.data
 
     # Verificar que el gasto se guardó
-    with cursor_context() as (conn, cursor):
+    with cursor_context() as (_conn, cursor):
         cursor.execute(
             "SELECT * FROM gastos WHERE descripcion = 'Alquiler mensual';"
         )
@@ -115,7 +115,7 @@ def test_crear_gasto_valido(client, setup_test_db):
         assert gasto['anio'] == 2025
 
 
-def test_crear_gasto_invalido(client, setup_test_db):
+def test_crear_gasto_invalido(client, setup_test_db):  # noqa: F811
     """Test que no se puede crear un gasto con datos inválidos."""
     data = {
         'categoria': '1',
@@ -129,15 +129,17 @@ def test_crear_gasto_invalido(client, setup_test_db):
     assert b'Todos los campos son obligatorios' in response.data
 
     # Verificar que no se guardó nada
-    with cursor_context() as (conn, cursor):
+    with cursor_context() as (_conn, cursor):
         cursor.execute(
             "SELECT COUNT(*) as count FROM gastos WHERE descripcion = 'Alquiler mensual';"
         )
-        count = cursor.fetchone()['count']
+        result = cursor.fetchone()
+        assert result is not None
+        count = result['count']
         assert count == 0
 
 
-def test_editar_gasto(client, setup_test_db):
+def test_editar_gasto(client, setup_test_db):  # noqa: F811
     """Test que se puede editar un gasto existente."""
     # Primero creamos un gasto
     with cursor_context() as (conn, cursor):
@@ -160,14 +162,15 @@ def test_editar_gasto(client, setup_test_db):
     assert b'Gasto actualizado correctamente' in response.data
 
     # Verificar que se actualizó
-    with cursor_context() as (conn, cursor):
+    with cursor_context() as (_conn, cursor):
         cursor.execute("SELECT * FROM gastos WHERE id = %s;", (gasto_id,))
         gasto = cursor.fetchone()
+        assert gasto is not None
         assert gasto['descripcion'] == 'Alquiler mensual actualizado'
         assert float(gasto['monto']) == 900.00
 
 
-def test_eliminar_gasto(client, setup_test_db):
+def test_eliminar_gasto(client, setup_test_db):  # noqa: F811
     """Test que se puede eliminar un gasto."""
     # Crear gasto para eliminar
     with cursor_context() as (conn, cursor):
@@ -183,13 +186,13 @@ def test_eliminar_gasto(client, setup_test_db):
     assert b'Gasto eliminado correctamente' in response.data
 
     # Verificar que se eliminó
-    with cursor_context() as (conn, cursor):
+    with cursor_context() as (_conn, cursor):
         cursor.execute("SELECT * FROM gastos WHERE id = %s;", (gasto_id,))
         gasto = cursor.fetchone()
         assert gasto is None
 
 
-def test_ver_gastos_filtros(client, setup_test_db):
+def test_ver_gastos_filtros(client, setup_test_db):  # noqa: F811
     """Test que la página de gastos funciona con diferentes filtros."""
     # Crear algunos gastos de prueba
     with cursor_context() as (conn, cursor):
@@ -226,7 +229,7 @@ def test_ver_gastos_filtros(client, setup_test_db):
     assert b'Luz octubre' not in response.data
 
 
-def test_flujo_crud_completo(client, setup_test_db):
+def test_flujo_crud_completo(client, setup_test_db):  # noqa: F811
     """Test flujo completo: crear → leer → editar → eliminar."""
     with cursor_context() as (conn, cursor):
         # Insertar categoría de prueba
@@ -234,7 +237,9 @@ def test_flujo_crud_completo(client, setup_test_db):
             "INSERT INTO categorias (nombre) VALUES ('TestCategoria');")
         cursor.execute(
             "SELECT id FROM categorias WHERE nombre = 'TestCategoria';")
-        categoria_id = cursor.fetchone()['id']
+        result = cursor.fetchone()
+        assert result is not None
+        categoria_id = result['id']
         conn.commit()
 
     # 1. CREAR gasto
@@ -272,6 +277,7 @@ def test_flujo_crud_completo(client, setup_test_db):
     with cursor_context() as (_, cursor):
         cursor.execute(f"SELECT * FROM gastos WHERE id = {gasto_id};")
         gasto_editado = cursor.fetchone()
+        assert gasto_editado is not None
         assert gasto_editado['descripcion'] == 'Gasto EDITADO'
         assert float(gasto_editado['monto']) == 999.99
 
@@ -286,14 +292,16 @@ def test_flujo_crud_completo(client, setup_test_db):
         assert gasto_eliminado is None
 
 
-def test_validacion_datos_invalidos(client, setup_test_db):
+def test_validacion_datos_invalidos(client, setup_test_db):  # noqa: F811
     """Test validación de datos inválidos (monto negativo, campos vacíos)."""
     with cursor_context() as (conn, cursor):
         cursor.execute(
             "INSERT INTO categorias (nombre) VALUES ('TestCategoria');")
         cursor.execute(
             "SELECT id FROM categorias WHERE nombre = 'TestCategoria';")
-        categoria_id = cursor.fetchone()['id']
+        result = cursor.fetchone()
+        assert result is not None
+        categoria_id = result['id']
         conn.commit()
 
     # Monto negativo

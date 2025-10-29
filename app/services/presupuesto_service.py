@@ -1,9 +1,11 @@
 """
 Servicio que maneja la lógica de negocio relacionada con los presupuestos.
 """
-from typing import Optional, Dict, Any
+from typing import Dict, Any
+import pymysql
 from app.constants import MESES
 from app.database import cursor_context
+from app.exceptions import DatabaseError, ValidationError
 from app.utils_df import decimal_to_float
 from app.queries import (
     q_presupuesto_vigente,
@@ -55,8 +57,18 @@ def update_presupuesto(mes: str, anio: int, monto: float) -> bool:
         monto: Monto del presupuesto
 
     Returns:
-        True si el presupuesto fue actualizado/creado correctamente, False en caso contrario
+        True si el presupuesto fue actualizado/creado correctamente
+
+    Raises:
+        ValidationError: Si los datos son inválidos
+        DatabaseError: Si hay un error en la base de datos
     """
+    if monto <= 0:
+        raise ValidationError("El monto del presupuesto debe ser mayor a cero")
+
+    if mes not in MESES:
+        raise ValidationError(f"Mes inválido: {mes}")
+
     try:
         with cursor_context() as (conn, cursor):
             # Verificar si ya existe un presupuesto para ese mes/año
@@ -73,8 +85,12 @@ def update_presupuesto(mes: str, anio: int, monto: float) -> bool:
             conn.commit()
             return True
 
-    except Exception:
-        return False
+    except (ValidationError, DatabaseError):
+        raise
+    except pymysql.Error as e:
+        raise DatabaseError(f"Error al actualizar presupuesto: {e}") from e
+    except (ValueError, TypeError) as e:
+        raise ValidationError(f"Datos inválidos: {e}") from e
 
 
 def calcular_acumulado(mes: str, anio: int) -> float:

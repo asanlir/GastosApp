@@ -6,6 +6,7 @@ from contextlib import contextmanager
 import pymysql
 
 from .config import DefaultConfig
+from .exceptions import DatabaseError
 
 
 def _get_db_params():
@@ -29,14 +30,23 @@ def get_connection():
 
 @contextmanager
 def connection_context():
-    conn = get_connection()
+    """Context manager que entrega una conexión y se asegura de cerrar.
+
+    Raises:
+        DatabaseError: Si no se puede establecer o cerrar la conexión.
+    """
+    conn = None
     try:
+        conn = get_connection()
         yield conn
+    except pymysql.Error as e:
+        raise DatabaseError(f"Error en conexión a base de datos: {e}") from e
     finally:
-        try:
-            conn.close()
-        except Exception:
-            pass
+        if conn:
+            try:
+                conn.close()
+            except pymysql.Error:
+                pass  # Ignorar errores al cerrar
 
 
 @contextmanager
@@ -46,17 +56,26 @@ def cursor_context():
     Uso:
         with cursor_context() as (conn, cur):
             cur.execute(...)
+
+    Raises:
+        DatabaseError: Si no se puede establecer la conexión o crear el cursor.
     """
-    conn = get_connection()
-    cur = conn.cursor()
+    conn = None
+    cur = None
     try:
+        conn = get_connection()
+        cur = conn.cursor()
         yield conn, cur
+    except pymysql.Error as e:
+        raise DatabaseError(f"Error en cursor de base de datos: {e}") from e
     finally:
-        try:
-            cur.close()
-        except Exception:
-            pass
-        try:
-            conn.close()
-        except Exception:
-            pass
+        if cur:
+            try:
+                cur.close()
+            except pymysql.Error:
+                pass  # Ignorar errores al cerrar
+        if conn:
+            try:
+                conn.close()
+            except pymysql.Error:
+                pass  # Ignorar errores al cerrar

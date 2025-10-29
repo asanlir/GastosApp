@@ -19,15 +19,20 @@ class BaseConfig:
     DB_NAME = os.getenv('DB_NAME', 'economia_db')
     DB_PORT = int(os.getenv('DB_PORT', '3306'))
 
+    # Configuración de logging
+    LOG_LEVEL = os.getenv('LOG_LEVEL', 'INFO')
+
 
 class DevelopmentConfig(BaseConfig):
     """Configuración de desarrollo"""
     DEBUG = True
+    LOG_LEVEL = 'DEBUG'
 
 
 class ProductionConfig(BaseConfig):
     """Configuración de producción"""
     DEBUG = False
+    LOG_LEVEL = 'WARNING'
 
 
 # Alias para configuración por defecto

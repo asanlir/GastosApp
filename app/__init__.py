@@ -4,6 +4,7 @@ Contiene la factory de la aplicación Flask y configuración inicial.
 """
 from flask import Flask
 import os
+from app.logging_config import setup_logging
 
 
 def create_app(config_name='default'):
@@ -25,6 +26,9 @@ def create_app(config_name='default'):
     # Configuración inicial - será expandida en PRs posteriores
     app.config.from_object(f'app.config.{config_name.capitalize()}Config')
 
+    # Configurar logging
+    setup_logging(app)
+
     # Registrar blueprints
     # Importar el módulo donde definimos el blueprint
     from app.routes import main as main_module
@@ -41,4 +45,5 @@ def create_app(config_name='default'):
             app.add_url_rule(rule, endpoint=endpoint,
                              view_func=view_func, methods=methods)
 
+    app.logger.info("Aplicación Flask iniciada correctamente")
     return app
