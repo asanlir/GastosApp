@@ -88,8 +88,10 @@ def add_gasto(categoria_id: str, descripcion: str, monto: float, mes: str, anio:
             categoria_result = cursor.fetchone()
 
             if not categoria_result:
-                logger.warning(f"Intento de agregar gasto con categoría inexistente: ID {categoria_id}")
-                raise ValidationError(f"Categoría con ID {categoria_id} no existe")
+                logger.warning(
+                    f"Intento de agregar gasto con categoría inexistente: ID {categoria_id}")
+                raise ValidationError(
+                    f"Categoría con ID {categoria_id} no existe")
 
             categoria = categoria_result["nombre"]
 
@@ -137,7 +139,8 @@ def update_gasto(gasto_id: int, categoria_id: str, descripcion: str, monto: floa
                                (int(categoria_id),))
                 categoria_result = cursor.fetchone()
                 if not categoria_result:
-                    raise ValidationError(f"Categoría con ID {categoria_id} no existe")
+                    raise ValidationError(
+                        f"Categoría con ID {categoria_id} no existe")
                 categoria = categoria_result["nombre"]
             else:
                 # ya viene como nombre

@@ -53,7 +53,8 @@ def setup_logging(app):
         werkzeug_logger = logging.getLogger('werkzeug')
         werkzeug_logger.setLevel(logging.WARNING)
 
-    app.logger.info(f"Sistema de logging inicializado - Nivel: {logging.getLevelName(log_level)}")
+    app.logger.info(
+        f"Sistema de logging inicializado - Nivel: {logging.getLevelName(log_level)}")
 
 
 def get_logger(name: str) -> logging.Logger:

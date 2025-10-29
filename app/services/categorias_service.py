@@ -73,7 +73,8 @@ def update_categoria(categoria_id: int, nombre: str) -> bool:
 
     try:
         with cursor_context() as (conn, cursor):
-            cursor.execute(q_update_categoria(), (nombre.strip(), categoria_id))
+            cursor.execute(q_update_categoria(),
+                           (nombre.strip(), categoria_id))
             conn.commit()
             return cursor.rowcount > 0
     except DatabaseError:
