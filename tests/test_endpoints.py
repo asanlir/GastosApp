@@ -12,74 +12,87 @@ pytestmark = pytest.mark.integration
 @pytest.fixture
 def setup_test_db(app):  # noqa: F811
     """Fixture que inicializa la base de datos de prueba con datos básicos."""
-    # Crear tablas y datos de prueba
-    with cursor_context() as (conn, cursor):
-        # Limpiar tablas si existen
-        cursor.execute("DROP TABLE IF EXISTS gastos;")
-        cursor.execute("DROP TABLE IF EXISTS categorias;")
-        cursor.execute("DROP TABLE IF EXISTS presupuesto;")
+    # ⚠️ CRÍTICO: Activar el contexto de app para que cursor_context()
+    # detecte TESTING=True y use test_economia_db
 
-        # Crear tabla categorías
-        cursor.execute("""
-            CREATE TABLE IF NOT EXISTS categorias (
-                id INT AUTO_INCREMENT PRIMARY KEY,
-                nombre VARCHAR(50) NOT NULL UNIQUE
-            );
-        """)
+    with app.app_context():
+        # PRIMERO: Limpiar COMPLETAMENTE la base de datos antes de cada test
+        with cursor_context() as (conn, cursor):
+            cursor.execute("DELETE FROM gastos;")
+            cursor.execute("DELETE FROM presupuesto;")
+            cursor.execute("DELETE FROM categorias;")
 
-        # Crear tabla gastos
-        cursor.execute("""
-            CREATE TABLE IF NOT EXISTS gastos (
-                id INT AUTO_INCREMENT PRIMARY KEY,
-                categoria VARCHAR(50) NOT NULL,
-                descripcion TEXT,
-                monto DECIMAL(10, 2) NOT NULL,
-                mes VARCHAR(20) NOT NULL,
-                anio INT NOT NULL,
-                FOREIGN KEY (categoria) REFERENCES categorias(nombre)
-            );
-        """)
+            # RESETEAR AUTO_INCREMENT para que los IDs sean predecibles
+            cursor.execute("ALTER TABLE categorias AUTO_INCREMENT = 1;")
+            cursor.execute("ALTER TABLE gastos AUTO_INCREMENT = 1;")
+            cursor.execute("ALTER TABLE presupuesto AUTO_INCREMENT = 1;")
+            conn.commit()
 
-        # Crear tabla presupuesto
-        cursor.execute("""
-            CREATE TABLE IF NOT EXISTS presupuesto (
-                id INT AUTO_INCREMENT PRIMARY KEY,
-                monto DECIMAL(10, 2) NOT NULL,
-                fecha_cambio DATETIME NOT NULL,
-                mes VARCHAR(20) NOT NULL,
-                anio INT NOT NULL
-            );
-        """)
+        # SEGUNDO: Crear tablas y datos de prueba
+        with cursor_context() as (conn, cursor):
+            # Crear tabla categorías PRIMERO
+            cursor.execute("""
+                CREATE TABLE IF NOT EXISTS categorias (
+                    id INT AUTO_INCREMENT PRIMARY KEY,
+                    nombre VARCHAR(50) NOT NULL UNIQUE
+                );
+            """)
 
-        # Insertar categorías de prueba
-        categorias = ['Alquiler', 'Facturas', 'Compra', 'Gasolina']
-        for categoria in categorias:
-            cursor.execute(
-                "INSERT INTO categorias (nombre) VALUES (%s);",
-                (categoria,)
-            )
+            # Crear tabla gastos
+            cursor.execute("""
+                CREATE TABLE IF NOT EXISTS gastos (
+                    id INT AUTO_INCREMENT PRIMARY KEY,
+                    categoria VARCHAR(50) NOT NULL,
+                    descripcion TEXT,
+                    monto DECIMAL(10, 2) NOT NULL,
+                    mes VARCHAR(20) NOT NULL,
+                    anio INT NOT NULL,
+                    FOREIGN KEY (categoria) REFERENCES categorias(nombre)
+                );
+            """)
 
-        # Insertar presupuesto de prueba
-        mes_actual = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio",
-                      "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"][
-            datetime.now().month - 1]
-        anio_actual = datetime.now().year
+            # Crear tabla presupuesto
+            cursor.execute("""
+                CREATE TABLE IF NOT EXISTS presupuesto (
+                    id INT AUTO_INCREMENT PRIMARY KEY,
+                    monto DECIMAL(10, 2) NOT NULL,
+                    fecha_cambio DATETIME NOT NULL,
+                    mes VARCHAR(20) NOT NULL,
+                    anio INT NOT NULL
+                );
+            """)
 
-        cursor.execute("""
-            INSERT INTO presupuesto (monto, fecha_cambio, mes, anio)
-            VALUES (%s, NOW(), %s, %s);
-        """, (1000.00, mes_actual, anio_actual))
+            # Insertar categorías de prueba CON IDs PREDECIBLES
+            # ID 1: Alquiler, ID 2: Facturas, ID 3: Compra, ID 4: Gasolina
+            categorias = ['Alquiler', 'Facturas', 'Compra', 'Gasolina']
+            for categoria in categorias:
+                cursor.execute(
+                    "INSERT INTO categorias (nombre) VALUES (%s);",
+                    (categoria,)
+                )
 
-        conn.commit()
+            # Insertar presupuesto de prueba
+            mes_actual = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio",
+                          "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"][
+                datetime.now().month - 1]
+            anio_actual = datetime.now().year
+
+            cursor.execute("""
+                INSERT INTO presupuesto (monto, fecha_cambio, mes, anio)
+                VALUES (%s, NOW(), %s, %s);
+            """, (1000.00, mes_actual, anio_actual))
+
+            conn.commit()
 
     yield
 
-    # Limpiar después de las pruebas
-    with cursor_context() as (conn, cursor):
-        cursor.execute("DROP TABLE IF EXISTS gastos;")
-        cursor.execute("DROP TABLE IF EXISTS categorias;")
-        cursor.execute("DROP TABLE IF EXISTS presupuesto;")
-        conn.commit()
+    # Limpiar datos después de las pruebas (pero NO borrar tablas)
+    with app.app_context():
+        with cursor_context() as (conn, cursor):
+            cursor.execute("DELETE FROM gastos;")
+            cursor.execute("DELETE FROM presupuesto;")
+            cursor.execute("DELETE FROM categorias;")
+            conn.commit()
 
 
 def test_index_get(client, setup_test_db):  # noqa: F811
@@ -90,7 +103,7 @@ def test_index_get(client, setup_test_db):  # noqa: F811
     assert b'Presupuesto' in response.data
 
 
-def test_crear_gasto_valido(client, setup_test_db):  # noqa: F811
+def test_crear_gasto_valido(client, setup_test_db, app_context):  # noqa: F811
     """Test que se puede crear un gasto con datos válidos."""
     data = {
         'categoria': '1',  # ID de la categoría Alquiler
@@ -115,11 +128,11 @@ def test_crear_gasto_valido(client, setup_test_db):  # noqa: F811
         assert gasto['anio'] == 2025
 
 
-def test_crear_gasto_invalido(client, setup_test_db):  # noqa: F811
+def test_crear_gasto_invalido(client, setup_test_db, app_context):  # noqa: F811
     """Test que no se puede crear un gasto con datos inválidos."""
     data = {
         'categoria': '1',
-        'descripcion': 'Alquiler mensual',
+        'descripcion': 'Test invalido - no debería crearse',  # Descripción única
         'monto': '',  # Monto vacío - debería fallar
         'mes': 'Octubre',
         'anio': '2025'
@@ -128,10 +141,10 @@ def test_crear_gasto_invalido(client, setup_test_db):  # noqa: F811
     assert response.status_code == 200
     assert b'Todos los campos son obligatorios' in response.data
 
-    # Verificar que no se guardó nada
+    # Verificar que no se guardó nada con esta descripción
     with cursor_context() as (_conn, cursor):
         cursor.execute(
-            "SELECT COUNT(*) as count FROM gastos WHERE descripcion = 'Alquiler mensual';"
+            "SELECT COUNT(*) as count FROM gastos WHERE descripcion = 'Test invalido - no debería crearse';"
         )
         result = cursor.fetchone()
         assert result is not None
@@ -139,7 +152,7 @@ def test_crear_gasto_invalido(client, setup_test_db):  # noqa: F811
         assert count == 0
 
 
-def test_editar_gasto(client, setup_test_db):  # noqa: F811
+def test_editar_gasto(client, setup_test_db, app_context):  # noqa: F811
     """Test que se puede editar un gasto existente."""
     # Primero creamos un gasto
     with cursor_context() as (conn, cursor):
@@ -170,7 +183,7 @@ def test_editar_gasto(client, setup_test_db):  # noqa: F811
         assert float(gasto['monto']) == 900.00
 
 
-def test_eliminar_gasto(client, setup_test_db):  # noqa: F811
+def test_eliminar_gasto(client, setup_test_db, app_context):  # noqa: F811
     """Test que se puede eliminar un gasto."""
     # Crear gasto para eliminar
     with cursor_context() as (conn, cursor):
@@ -192,14 +205,14 @@ def test_eliminar_gasto(client, setup_test_db):  # noqa: F811
         assert gasto is None
 
 
-def test_ver_gastos_filtros(client, setup_test_db):  # noqa: F811
+def test_ver_gastos_filtros(client, setup_test_db, app_context):  # noqa: F811
     """Test que la página de gastos funciona con diferentes filtros."""
     # Crear algunos gastos de prueba
     with cursor_context() as (conn, cursor):
         # Gasto mes actual
         cursor.execute("""
             INSERT INTO gastos (categoria, descripcion, monto, mes, anio)
-            VALUES 
+            VALUES
             ('Alquiler', 'Alquiler octubre', 850.00, 'Octubre', 2025),
             ('Facturas', 'Luz octubre', 75.00, 'Octubre', 2025),
             ('Compra', 'Compra septiembre', 120.00, 'Septiembre', 2025);
@@ -229,18 +242,10 @@ def test_ver_gastos_filtros(client, setup_test_db):  # noqa: F811
     assert b'Luz octubre' not in response.data
 
 
-def test_flujo_crud_completo(client, setup_test_db):  # noqa: F811
+def test_flujo_crud_completo(client, setup_test_db, app_context):  # noqa: F811
     """Test flujo completo: crear → leer → editar → eliminar."""
-    with cursor_context() as (conn, cursor):
-        # Insertar categoría de prueba
-        cursor.execute(
-            "INSERT INTO categorias (nombre) VALUES ('TestCategoria');")
-        cursor.execute(
-            "SELECT id FROM categorias WHERE nombre = 'TestCategoria';")
-        result = cursor.fetchone()
-        assert result is not None
-        categoria_id = result['id']
-        conn.commit()
+    # Usar categoría ID 2 (Facturas) del fixture
+    categoria_id = 2
 
     # 1. CREAR gasto
     data = {
@@ -292,17 +297,10 @@ def test_flujo_crud_completo(client, setup_test_db):  # noqa: F811
         assert gasto_eliminado is None
 
 
-def test_validacion_datos_invalidos(client, setup_test_db):  # noqa: F811
+def test_validacion_datos_invalidos(client, setup_test_db, app_context):  # noqa: F811
     """Test validación de datos inválidos (monto negativo, campos vacíos)."""
-    with cursor_context() as (conn, cursor):
-        cursor.execute(
-            "INSERT INTO categorias (nombre) VALUES ('TestCategoria');")
-        cursor.execute(
-            "SELECT id FROM categorias WHERE nombre = 'TestCategoria';")
-        result = cursor.fetchone()
-        assert result is not None
-        categoria_id = result['id']
-        conn.commit()
+    # Usar categoría ID 1 (Alquiler) que ya existe del fixture
+    categoria_id = 1
 
     # Monto negativo
     data_negativo = {

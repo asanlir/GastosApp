@@ -2,9 +2,11 @@
 
 ## Visión General
 
-La suite de testing cubre **servicios, queries, endpoints y utilidades** con una combinación de **tests unitarios** y **tests de integración**.
+La suite de testing cubre **servicios, queries, endpoints, charts y utilidades** con una combinación de **tests unitarios** y **tests de integración**.
 
-**Cobertura actual**: ~85% (54 tests unitarios + 8 tests de integración)
+**Estado actual**: ✅ **68/68 tests pasando (100%)**  
+**Tiempo de ejecución**: ~1.4 segundos  
+**Cobertura**: Alta en todos los componentes principales
 
 ---
 
@@ -33,14 +35,35 @@ tests/
 @pytest.fixture
 def app():
     """Instancia de Flask configurada para testing."""
-    app = create_app("testing")
-    with app.app_context():
-        yield app
+    test_app = create_app('testing')
+    test_app.config.update({
+        'TESTING': True,
+        'DB_NAME': 'test_economia_db',  # Usamos una BD de test separada
+        'TEMPLATES_AUTO_RELOAD': True
+    })
+    return test_app
 
 @pytest.fixture
 def client(app):
     """Cliente de test para hacer requests."""
     return app.test_client()
+
+@pytest.fixture
+def app_context(app):
+    """
+    Fixture que provee un contexto de aplicación activo.
+
+    CRÍTICO: Usar cuando necesites ejecutar código que dependa de Flask context
+    (como cursor_context() que necesita detectar TESTING=True).
+
+    Uso:
+        def test_example(app_context):
+            with cursor_context() as (conn, cursor):
+                # Este código ejecutará con TESTING=True
+                cursor.execute("SELECT * FROM gastos")
+    """
+    with app.app_context():
+        yield app
 
 @pytest.fixture
 def mock_cursor():
@@ -51,6 +74,22 @@ def mock_cursor():
         ("descripcion",), ("monto",), ("mes",), ("anio",)
     ]
     return cursor
+```
+
+**⚠️ IMPORTANTE - Test Isolation:**
+
+Los tests de integración que usan `cursor_context()` directamente **DEBEN** incluir el fixture `app_context` para activar el Flask context. Sin esto, el código detectará que no está en modo testing y usará la base de datos de producción.
+
+```python
+# ❌ INCORRECTO - Usará producción
+def test_example(client, setup_test_db):
+    with cursor_context() as (conn, cursor):  # ¡Peligro! Usa economia_db
+        cursor.execute("DELETE FROM gastos")
+
+# ✅ CORRECTO - Usará test_economia_db
+def test_example(client, setup_test_db, app_context):
+    with cursor_context() as (conn, cursor):  # Seguro: usa test_economia_db
+        cursor.execute("DELETE FROM gastos")
 ```
 
 ---

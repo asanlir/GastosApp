@@ -42,6 +42,24 @@ def client(app):  # noqa: F811
 
 
 @pytest.fixture
+def app_context(app):  # noqa: F811
+    """
+    Fixture que provee un contexto de aplicación activo.
+
+    Usar cuando necesites ejecutar código que dependa de Flask context
+    (como cursor_context() que necesita detectar TESTING=True).
+
+    Uso:
+        def test_example(app_context):
+            with cursor_context() as (conn, cursor):
+                # Este código ejecutará con TESTING=True
+                cursor.execute("SELECT * FROM gastos")
+    """
+    with app.app_context():
+        yield app
+
+
+@pytest.fixture
 def runner(app):  # noqa: F811
     """Fixture que provee un runner para ejecutar comandos CLI."""
     return app.test_cli_runner()

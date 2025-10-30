@@ -37,5 +37,21 @@ Desarrollo.odt
 PR_REVIEW.md
 REFACTOR_REVIEW.md
 
+# Documentación interna (no para repo público)
+# Estos archivos contienen información específica de desarrollo,
+# incidentes internos o análisis que no son relevantes para usuarios externos
+# Análisis de incidentes internos
+DATABASE_SAFETY.md
+# Checklist interno de deployment
+PRODUCTION_READINESS.md
+# Notas de preparación para público
+prepare_public_repo.md
+# Script temporal de debugging
+diagnose_context.py
+# Script interno de verificación
+verify_prod.py
+# Script de prueba de conexión
+test_connection.py
+
 # Logs
 logs/*.log
