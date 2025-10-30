@@ -136,6 +136,58 @@ python restore_backup.py
 
 ---
 
+### 6. `scripts/migrate.py` — Sistema de Migraciones No Destructivas
+
+**✅ Seguro de usar con datos existentes** (aplica cambios no destructivos como índices)
+
+El repositorio público incluye un runner de migraciones automático que ejecuta scripts de `scripts/migrations/` en orden secuencial.
+
+**Uso recomendado:**
+
+```bash
+# Ver qué migraciones se ejecutarían (dry-run)
+python scripts/migrate.py --db-name economia_db --dry-run
+
+# Aplicar migraciones (con confirmación interactiva)
+python scripts/migrate.py --db-name economia_db
+
+# Aplicar migraciones sin confirmación
+python scripts/migrate.py --db-name economia_db --force
+```
+
+**Características:**
+
+- **Idempotente**: Las migraciones consultan el estado antes de aplicar cambios
+- **No destructivo**: Solo CREATE INDEX, ADD CONSTRAINT, etc. (nunca DROP/TRUNCATE)
+- **Ordenado**: Ejecuta en orden numérico (001*, 002*, ...)
+- **Flags disponibles**:
+  - `--dry-run`: Muestra qué haría sin ejecutar
+  - `--db-name NOMBRE`: Selecciona BD objetivo
+  - `--force`: Omite confirmación interactiva
+
+**Cuándo usar:**
+
+- ✅ Después de actualizar el repo (pull) para aplicar mejoras de schema
+- ✅ Primera instalación tras `init_db.py` (si hay migraciones nuevas)
+- ✅ Cuando veas mensajes de "índices faltantes" en logs
+
+**Ejemplo de migración incluida:**
+
+- `001_add_presupuesto_indexes.py`: Crea índices de rendimiento en tabla presupuesto
+
+**Cómo añadir una migración nueva:**
+
+1. Crea un archivo `XXX_descripcion.py` en `scripts/migrations/` (XXX = número secuencial)
+2. El script debe:
+   - Importar `app.config` y `pymysql`
+   - Consultar INFORMATION_SCHEMA antes de aplicar cambios
+   - Ser idempotente (ejecutable múltiples veces sin errores)
+   - Usar print() para reportar acciones
+3. Prueba con `--dry-run` antes de aplicar
+4. Documenta el propósito en el docstring del archivo
+
+---
+
 ## 🛡️ Mejores Prácticas
 
 ### Para Evitar Pérdida de Datos:
@@ -207,13 +259,14 @@ Si perdiste datos accidentalmente:
 
 ## 📊 Resumen de Seguridad
 
-| Script              | Seguro con Datos | Propósito            | Riesgo     |
-| ------------------- | ---------------- | -------------------- | ---------- |
-| `check_db.py`       | ✅ Sí            | Ver estado BD        | 🟢 Ninguno |
-| `add_table.py`      | ✅ Sí            | Agregar tabla        | 🟢 Bajo    |
-| `seed_db.py`        | ✅ Sí            | Datos iniciales      | 🟢 Bajo    |
-| `init_db.py`        | ❌ No            | Inicializar BD vacía | 🔴 Alto    |
-| `restore_backup.py` | ⚠️ Precaución    | Restaurar backup     | 🟡 Medio   |
+| Script               | Seguro con Datos | Propósito                   | Riesgo     |
+| -------------------- | ---------------- | --------------------------- | ---------- |
+| `check_db.py`        | ✅ Sí            | Ver estado BD               | 🟢 Ninguno |
+| `add_table.py`       | ✅ Sí            | Agregar tabla               | 🟢 Bajo    |
+| `seed_db.py`         | ✅ Sí            | Datos iniciales             | 🟢 Bajo    |
+| `scripts/migrate.py` | ✅ Sí            | Migraciones no destructivas | 🟢 Bajo    |
+| `init_db.py`         | ❌ No            | Inicializar BD vacía        | 🔴 Alto    |
+| `restore_backup.py`  | ⚠️ Precaución    | Restaurar backup            | 🟡 Medio   |
 
 ---
 
