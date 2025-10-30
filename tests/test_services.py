@@ -241,8 +241,8 @@ class TestPresupuestoService:
     @patch('app.services.presupuesto_service.cursor_context')
     @patch('app.services.presupuesto_service.get_presupuesto_mensual')
     def test_calcular_acumulado(self, mock_get_presupuesto, mock_cursor_context):
-        """Test calcular presupuesto acumulado."""
-        # Mock presupuesto mensual
+        """Test calcular presupuesto acumulado con presupuesto fijo."""
+        # Mock presupuesto mensual fijo de 1000.0
         mock_get_presupuesto.return_value = 1000.0
 
         # Mock gastos acumulados
@@ -251,11 +251,38 @@ class TestPresupuestoService:
         mock_cursor_context.return_value.__enter__.return_value = (
             None, mock_cursor)
 
-        # Octubre = mes 10, por tanto 10 meses
+        # Octubre = mes 10, se suma presupuesto de cada mes (Enero a Octubre)
         resultado = presupuesto_service.calcular_acumulado('Octubre', 2025)
 
-        # 1000 * 10 = 10000 (presupuesto) - 2500 (gastos) = 7500
+        # Verificar que se llamó 10 veces a get_presupuesto_mensual (una por cada mes)
+        assert mock_get_presupuesto.call_count == 10
+
+        # 1000 * 10 = 10000 (presupuesto acumulado) - 2500 (gastos) = 7500
         assert resultado == 7500.0
+
+    @patch('app.services.presupuesto_service.cursor_context')
+    @patch('app.services.presupuesto_service.get_presupuesto_mensual')
+    def test_calcular_acumulado_variable(self, mock_get_presupuesto, mock_cursor_context):
+        """Test calcular presupuesto acumulado con presupuesto variable por mes."""
+        # Mock presupuesto mensual variable
+        # Enero: 1000, Febrero: 1200, Marzo: 1500
+        presupuestos = [1000.0, 1200.0, 1500.0]
+        mock_get_presupuesto.side_effect = presupuestos
+
+        # Mock gastos acumulados
+        mock_cursor = MagicMock()
+        mock_cursor.fetchone.return_value = {'total_gastos': 1500.0}
+        mock_cursor_context.return_value.__enter__.return_value = (
+            None, mock_cursor)
+
+        # Marzo = mes 3
+        resultado = presupuesto_service.calcular_acumulado('Marzo', 2025)
+
+        # Verificar que se llamó 3 veces
+        assert mock_get_presupuesto.call_count == 3
+
+        # 1000 + 1200 + 1500 = 3700 (presupuesto acumulado) - 1500 (gastos) = 2200
+        assert resultado == 2200.0
 
 
 class TestCategoriasService:
@@ -332,7 +359,8 @@ class TestCategoriasService:
         mock_cursor.fetchone.return_value = {'nombre': 'NombreViejo'}
         mock_cursor.execute.side_effect = [
             None,  # Primera llamada SELECT exitosa
-            pymysql.IntegrityError(1062, "Duplicate entry 'Test' for key 'nombre'")
+            pymysql.IntegrityError(
+                1062, "Duplicate entry 'Test' for key 'nombre'")
         ]
         mock_cursor_context.return_value.__enter__.return_value = (
             mock_conn, mock_cursor)

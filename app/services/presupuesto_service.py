@@ -96,18 +96,25 @@ def update_presupuesto(mes: str, anio: int, monto: float) -> bool:
 def calcular_acumulado(mes: str, anio: int) -> float:
     """
     Calcula el presupuesto acumulado hasta un mes específico.
+    Suma los presupuestos individuales de cada mes del año hasta el mes dado.
 
     Args:
         mes: Mes hasta el que se calcula el acumulado
         anio: Año del cálculo
 
     Returns:
-        Monto acumulado del presupuesto
+        Monto acumulado del presupuesto (presupuesto total - gastos totales)
     """
     meses = MESES
 
-    meses_transcurridos = meses.index(mes) + 1
-    presupuesto_mensual = get_presupuesto_mensual(mes, anio)
+    mes_index = meses.index(mes)
+
+    # Sumar el presupuesto de cada mes hasta el mes actual
+    presupuesto_total_acumulado = 0.0
+    for i in range(mes_index + 1):
+        mes_actual = meses[i]
+        presupuesto_mes = get_presupuesto_mensual(mes_actual, anio)
+        presupuesto_total_acumulado += presupuesto_mes
 
     with cursor_context() as (_, cursor):
         # Obtener total de gastos hasta el mes actual
@@ -116,5 +123,4 @@ def calcular_acumulado(mes: str, anio: int) -> float:
     total_val = row["total_gastos"] if row and row["total_gastos"] else 0.0
     total_gastos_anual = decimal_to_float(total_val)
 
-    presupuesto_total_acumulado = presupuesto_mensual * meses_transcurridos
     return presupuesto_total_acumulado - total_gastos_anual
