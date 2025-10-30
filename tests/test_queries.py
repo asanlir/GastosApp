@@ -169,8 +169,8 @@ class TestPresupuestoQueries:
         sql = q_insert_presupuesto()
 
         assert "INSERT INTO presupuesto" in sql
-        assert "(mes, anio, monto)" in sql
-        assert "VALUES (%s, %s, %s)" in sql
+        assert "(mes, anio, monto, fecha_cambio)" in sql
+        assert "VALUES (%s, %s, %s, NOW())" in sql
 
     def test_q_sum_gastos_hasta_mes(self):
         """Verifica query para suma de gastos hasta mes."""

@@ -10,7 +10,7 @@ pytestmark = pytest.mark.integration
 
 
 @pytest.fixture
-def setup_test_db(_app):  # noqa: F811
+def setup_test_db(app):  # noqa: F811
     """Fixture que inicializa la base de datos de prueba con datos básicos."""
     # Crear tablas y datos de prueba
     with cursor_context() as (conn, cursor):
@@ -86,7 +86,7 @@ def test_index_get(client, setup_test_db):  # noqa: F811
     """Test que la página principal carga correctamente."""
     response = client.get('/')
     assert response.status_code == 200
-    assert b'Agregar Gasto' in response.data
+    assert 'Añadir Gasto' in response.data.decode('utf-8')
     assert b'Presupuesto' in response.data
 
 
@@ -215,7 +215,7 @@ def test_ver_gastos_filtros(client, setup_test_db):  # noqa: F811
 
     # Probar filtro por mes
     data = {'mes': 'Octubre', 'anio': '2025'}
-    response = client.post('/gastos', data=data)
+    response = client.post('/gastos', data=data, follow_redirects=True)
     assert response.status_code == 200
     assert b'Alquiler octubre' in response.data
     assert b'Luz octubre' in response.data
@@ -223,7 +223,7 @@ def test_ver_gastos_filtros(client, setup_test_db):  # noqa: F811
 
     # Probar filtro por categoría
     data = {'categoria': 'Alquiler'}
-    response = client.post('/gastos', data=data)
+    response = client.post('/gastos', data=data, follow_redirects=True)
     assert response.status_code == 200
     assert b'Alquiler octubre' in response.data
     assert b'Luz octubre' not in response.data

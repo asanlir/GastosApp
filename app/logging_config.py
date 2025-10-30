@@ -13,10 +13,6 @@ def setup_logging(app):
     Args:
         app: Instancia de la aplicación Flask
     """
-    # Crear directorio de logs si no existe
-    logs_dir = Path('logs')
-    logs_dir.mkdir(exist_ok=True)
-
     # Obtener el nivel de logging desde la configuración
     log_level = getattr(logging, app.config.get('LOG_LEVEL', 'INFO'))
 
@@ -26,27 +22,39 @@ def setup_logging(app):
         datefmt='%Y-%m-%d %H:%M:%S'
     )
 
-    # Handler para archivo (con rotación)
-    file_handler = logging.handlers.RotatingFileHandler(
-        logs_dir / 'gastos.log',
-        maxBytes=10 * 1024 * 1024,  # 10 MB
-        backupCount=5,
-        encoding='utf-8'
-    )
-    file_handler.setLevel(log_level)
-    file_handler.setFormatter(formatter)
-
-    # Handler para consola (solo en desarrollo)
-    console_handler = logging.StreamHandler()
-    console_handler.setLevel(log_level)
-    console_handler.setFormatter(formatter)
-
-    # Configurar logger de la aplicación
-    app.logger.setLevel(log_level)
-    app.logger.addHandler(file_handler)
-
-    if app.config.get('DEBUG', False):
+    # En modo testing, solo usar StreamHandler para evitar problemas con file descriptors
+    if app.config.get('TESTING', False):
+        console_handler = logging.StreamHandler()
+        console_handler.setLevel(log_level)
+        console_handler.setFormatter(formatter)
+        app.logger.setLevel(log_level)
         app.logger.addHandler(console_handler)
+    else:
+        # Crear directorio de logs si no existe
+        logs_dir = Path('logs')
+        logs_dir.mkdir(exist_ok=True)
+
+        # Handler para archivo (con rotación)
+        file_handler = logging.handlers.RotatingFileHandler(
+            logs_dir / 'gastos.log',
+            maxBytes=10 * 1024 * 1024,  # 10 MB
+            backupCount=5,
+            encoding='utf-8'
+        )
+        file_handler.setLevel(log_level)
+        file_handler.setFormatter(formatter)
+
+        # Handler para consola (solo en desarrollo)
+        console_handler = logging.StreamHandler()
+        console_handler.setLevel(log_level)
+        console_handler.setFormatter(formatter)
+
+        # Configurar logger de la aplicación
+        app.logger.setLevel(log_level)
+        app.logger.addHandler(file_handler)
+
+        if app.config.get('DEBUG', False):
+            app.logger.addHandler(console_handler)
 
     # Suprimir logs excesivos de werkzeug en producción
     if not app.config.get('DEBUG', False):

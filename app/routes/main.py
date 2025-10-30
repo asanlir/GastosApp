@@ -76,11 +76,14 @@ def index():
             if not categoria or not monto or not mes or not anio:
                 flash('Todos los campos son obligatorios', 'error')
             else:
-                if gastos_service.add_gasto(categoria, descripcion, float(monto), mes, int(anio)):
-                    flash('Gasto agregado correctamente', 'success')
-                else:
-                    flash('Error al agregar el gasto', 'error')
-                return redirect(url_for('main.index', mes=mes, anio=anio))
+                try:
+                    if gastos_service.add_gasto(categoria, descripcion, float(monto), mes, int(anio)):
+                        flash('Gasto agregado correctamente', 'success')
+                    else:
+                        flash('Error al agregar el gasto', 'error')
+                    return redirect(url_for('main.index', mes=mes, anio=anio))
+                except ValidationError as e:
+                    flash(str(e), 'error')
 
         elif "mes" in request.form:
             # Cambiar mes/año seleccionado
