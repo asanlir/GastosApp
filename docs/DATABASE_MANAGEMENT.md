@@ -8,31 +8,39 @@ Esta guía explica cómo gestionar la base de datos de forma segura para **evita
 
 ## 📋 Scripts Disponibles
 
-### 1. `init_db.py` - Inicializar Base de Datos VACÍA
+### 1. `init_db.py` — Inicializar Base de Datos VACÍA (repo público)
 
-**⛔ NO ejecutar si la base de datos tiene datos**
+El repositorio público no incluye los `.sql`. Este script crea el esquema, índices y la FK necesarios **programáticamente** (sin borrar nada) y ofrece un seeding opcional seguro.
+
+**Uso recomendado (BD nueva):**
 
 ```bash
-python init_db.py
+# Crea la BD y tablas si no existen e inserta datos de ejemplo (categorías + presupuesto actual)
+python init_db.py --db-name economia_db --seed-sample
 ```
 
-**Cuándo usar:**
+**Con BD que ya tiene datos (no recomendado):**
 
-- ✅ Primera instalación del sistema
-- ✅ Base de datos completamente vacía
-- ✅ Ambiente de desarrollo nuevo
+```bash
+# Bloquea por seguridad si detecta datos existentes
+python init_db.py --db-name economia_db
 
-**Cuándo NO usar:**
+# Si entiendes el riesgo, puedes ignorar solo la detección (NO hace DROP/TRUNCATE)
+python init_db.py --db-name economia_db --force
+```
 
-- ❌ Base de datos con datos existentes
-- ❌ Producción con registros guardados
-- ❌ Para agregar una tabla faltante
+**Flags disponibles:**
 
-**Protecciones:**
+- `--db-name NOMBRE` Selecciona la base de datos objetivo (por defecto usa `DB_NAME` de la config)
+- `--seed-sample` Inserta categorías básicas y 1 presupuesto para el mes/año actual
+- `--force` Ignora la detección de datos existentes (no borra datos, solo vuelve a crear lo que falte)
 
-- Verifica si hay datos antes de ejecutar
-- Requiere confirmación con `--force` si hay datos
-- Muestra advertencia clara
+**Protecciones y garantías:**
+
+- No ejecuta `DROP` ni `TRUNCATE`
+- Usa `CREATE DATABASE/TABLE/INDEX IF NOT EXISTS`
+- Verifica si hay datos en `gastos`, `categorias` o `presupuesto` y aborta salvo `--force`
+- Requiere confirmación interactiva escribiendo `INICIALIZAR`
 
 ---
 

@@ -96,17 +96,23 @@ pip install -r requirements.txt
 
 ### 4. Configurar Base de Datos
 
-```bash
-# Crear base de datos
-mysql -u root -p
+Opción A (recomendada en repo público): usar el script seguro `init_db.py`.
 
+```bash
+# Inicializa una BD nueva con esquema mínimo y datos de ejemplo
+python init_db.py --db-name economia_db --seed-sample
+
+# Si la BD ya contiene datos, el script se detendrá por seguridad.
+# Para reintentar ignorando SOLO la detección (no borra datos):
+python init_db.py --db-name economia_db --force
+```
+
+Opción B (si dispones de los .sql localmente): importar manualmente.
+
+```sql
 CREATE DATABASE economia_db CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 USE economia_db;
-
-# Ejecutar scripts de base de datos
-SOURCE database/schema.sql;
-SOURCE database/add_indexes.sql;
-SOURCE database/seed.sql;  # Opcional: datos de ejemplo
+-- Ejecuta tus scripts locales: schema.sql, add_indexes.sql, seed.sql
 ```
 
 ### 5. Configurar Variables de Entorno
@@ -415,7 +421,6 @@ Las contribuciones son bienvenidas! Por favor:
 - ✅ Calidad: 68/68 tests pasando
 - 🚀 Lista para producción
 
-
 ### v2.0.0 (2025-01-29)
 
 - ✨ **Refactor completo** a arquitectura modular
@@ -424,7 +429,6 @@ Las contribuciones son bienvenidas! Por favor:
 - 🔒 Excepciones tipadas y manejo de errores
 - 💾 Sistema de backups automáticos
 - 📚 Documentación completa
-
 
 ### v1.0.0 (2024-xx-xx)
 
