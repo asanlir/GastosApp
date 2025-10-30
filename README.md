@@ -249,6 +249,25 @@ pytest tests/test_services.py -v
 
 ## 💾 Sistema de Backups
 
+### ⚠️ Gestión Segura de Base de Datos
+
+**IMPORTANTE**: Para evitar pérdida accidental de datos, consulta la guía completa:
+
+📖 **[docs/DATABASE_MANAGEMENT.md](docs/DATABASE_MANAGEMENT.md)** - Guía de Gestión de Base de Datos
+
+**Reglas básicas:**
+
+```bash
+# ✅ Para verificar el estado de la BD
+python check_db.py
+
+# ✅ Para agregar una tabla específica (SEGURO con datos existentes)
+python add_table.py presupuesto
+
+# ❌ NO ejecutar con datos existentes (puede causar pérdida)
+python init_db.py  # Solo para BD vacías
+```
+
 ### Configuración de Backups Automáticos
 
 ```powershell
