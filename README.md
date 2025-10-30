@@ -174,7 +174,6 @@ gastos_refactor/
 │   ├── index.html             # Dashboard principal
 │   ├── gastos.html            # Histórico de gastos
 │   ├── report.html            # Reportes y gráficos
-│   ├── edit_gasto.html        # Editar gasto
 │   └── config.html            # Configuración
 ├── tests/                      # Tests automatizados
 │   ├── conftest.py            # Configuración pytest
@@ -406,6 +405,17 @@ Las contribuciones son bienvenidas! Por favor:
 
 ## 📝 Changelog
 
+### v2.1.0 (2025-10-30)
+
+**✨ Finalización refactorización y mejoras UX**
+
+- 🎨 Mejoras de Experiencia de Usuario
+- 🛡️ Protección de Datos
+- 🧹 Limpieza y Optimización
+- ✅ Calidad: 68/68 tests pasando
+- 🚀 Lista para producción
+
+
 ### v2.0.0 (2025-01-29)
 
 - ✨ **Refactor completo** a arquitectura modular
@@ -414,6 +424,7 @@ Las contribuciones son bienvenidas! Por favor:
 - 🔒 Excepciones tipadas y manejo de errores
 - 💾 Sistema de backups automáticos
 - 📚 Documentación completa
+
 
 ### v1.0.0 (2024-xx-xx)
 

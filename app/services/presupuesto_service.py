@@ -1,7 +1,7 @@
 """
 Servicio que maneja la lógica de negocio relacionada con los presupuestos.
 """
-from typing import Dict, Any
+from typing import Dict, Any, Optional
 import pymysql
 from app.constants import MESES
 from app.database import cursor_context
@@ -93,7 +93,7 @@ def update_presupuesto(mes: str, anio: int, monto: float) -> bool:
         raise ValidationError(f"Datos inválidos: {e}") from e
 
 
-def calcular_acumulado(mes: str, anio: int) -> float:
+def calcular_acumulado(mes: str, anio: int) -> Optional[float]:
     """
     Calcula el presupuesto acumulado hasta un mes específico.
     Suma los presupuestos individuales de cada mes del año hasta el mes dado.
@@ -104,20 +104,38 @@ def calcular_acumulado(mes: str, anio: int) -> float:
 
     Returns:
         Monto acumulado del presupuesto (presupuesto total - gastos totales)
+        o None si es un mes futuro sin gastos
     """
-    meses = MESES
+    from datetime import datetime
 
+    meses = MESES
     mes_index = meses.index(mes)
 
-    # Sumar el presupuesto de cada mes hasta el mes actual
+    # Verificar si el mes consultado es futuro
+    fecha_actual = datetime.now()
+    anio_actual = fecha_actual.year
+    mes_actual_index = meses.index(MESES[fecha_actual.month - 1])
+
+    es_mes_futuro = (anio > anio_actual) or (
+        anio == anio_actual and mes_index > mes_actual_index)
+
+    # Si es mes futuro, verificar si hay gastos
+    if es_mes_futuro:
+        with cursor_context() as (_, cursor):
+            cursor.execute(q_sum_gastos_hasta_mes(), (anio, mes))
+            row = cursor.fetchone()
+        if not row or not row["total_gastos"] or row["total_gastos"] == 0:
+            return None  # Mes futuro sin gastos, mostrar '--'
+
+    # Sumar el presupuesto de cada mes hasta el mes consultado
     presupuesto_total_acumulado = 0.0
     for i in range(mes_index + 1):
-        mes_actual = meses[i]
-        presupuesto_mes = get_presupuesto_mensual(mes_actual, anio)
+        mes_iter = meses[i]
+        presupuesto_mes = get_presupuesto_mensual(mes_iter, anio)
         presupuesto_total_acumulado += presupuesto_mes
 
     with cursor_context() as (_, cursor):
-        # Obtener total de gastos hasta el mes actual
+        # Obtener total de gastos hasta el mes consultado
         cursor.execute(q_sum_gastos_hasta_mes(), (anio, mes))
         row = cursor.fetchone()
     total_val = row["total_gastos"] if row and row["total_gastos"] else 0.0

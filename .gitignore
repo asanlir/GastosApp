@@ -25,3 +25,17 @@ scripts/backups/
 *.sql.gz
 *.sql.rar
 sync.log
+
+# Archivos temporales
+temp_restore/
+*.tmp
+*.bak
+
+# Archivos de desarrollo
+Casa*.ods
+Desarrollo.odt
+PR_REVIEW.md
+REFACTOR_REVIEW.md
+
+# Logs
+logs/*.log

@@ -74,15 +74,19 @@
             </table>
         </div>
 
-        <h3>Total de gastos: {{ total_gastos }}</h3>
-        <h3>Saldo restante: <span class="{% if (presupuesto_mensual - total_gastos) < 0 %}negativo{% endif %}">{{ presupuesto_mensual - total_gastos }}</span></h3>
+        <h3>Total de gastos: {{ "%.2f"|format(total_gastos) }}€</h3>
+        <h3>Saldo restante: <span class="{% if (presupuesto_mensual - total_gastos) < 0 %}negativo{% endif %}">{{ "%.2f"|format(presupuesto_mensual - total_gastos) }}€</span></h3>
 
         <br>
 
         <div class="pie">
             <h2>Gráfico de distribución de gastos:</h2>
             <div>
-                {{ fig_pie | safe }}
+                {% if fig_pie %}
+                    {{ fig_pie | safe }}
+                {% else %}
+                    <p style="text-align: center; color: #666; font-style: italic;">No hay gastos registrados para mostrar en el gráfico.</p>
+                {% endif %}
             </div>
         </div>
 

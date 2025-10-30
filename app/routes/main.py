@@ -27,7 +27,7 @@ main_bp = Blueprint('main', __name__)
 LEGACY_ROUTES = [
     ("/", "index", ["GET", "POST"]),
     ("/delete/<int:id>", "delete_gasto", ["GET"]),
-    ("/edit/<int:id>", "edit_gasto", ["GET", "POST"]),
+    ("/edit/<int:id>", "edit_gasto", ["POST"]),
     ("/gastos", "ver_gastos", ["GET", "POST"]),
     ("/report", "report", ["GET", "POST"]),
     ("/config", "config", ["GET", "POST"]),
@@ -134,13 +134,10 @@ def delete_gasto(gasto_id):
     return redirect(url_for('index'))
 
 
-@main_bp.route('/edit/<int:gasto_id>', methods=['GET', 'POST'])
+@main_bp.route('/edit/<int:gasto_id>', methods=['POST'])
 def edit_gasto(gasto_id):
     """
-    Edita un gasto existente.
-
-    GET: Muestra formulario de edición con datos actuales
-    POST: Procesa la actualización del gasto
+    Edita un gasto existente vía POST.
 
     Args:
         gasto_id (int): ID del gasto a editar
@@ -149,32 +146,53 @@ def edit_gasto(gasto_id):
         categoria (str): Nueva categoría
         descripcion (str): Nueva descripción
         monto (float): Nuevo monto
+        mes (str): Mes del gasto (para redirección)
+        anio (int): Año del gasto (para redirección)
 
     Returns:
-        GET: Template 'edit_gasto.html'
-        POST: Redirect a página principal
+        Redirect a página principal con mensaje flash
     """
     logger.info("Editando gasto ID: %s", gasto_id)
-    # Obtener el gasto
+
+    # Obtener el gasto para verificar que existe
     gasto = gastos_service.get_gasto_by_id(gasto_id)
     if not gasto:
-        flash('Gasto no encontrado')
-        return redirect(url_for('index'))
+        flash('Gasto no encontrado', 'error')
+        return redirect(url_for('main.index'))
 
-    if request.method == 'POST':
-        categoria_id = request.form['categoria']
-        descripcion = request.form['descripcion'].strip()
-        monto = request.form['monto']
+    # Obtener datos del formulario
+    categoria = request.form['categoria']
+    descripcion = request.form['descripcion'].strip()
+    monto = request.form['monto']
+    mes = request.form.get('mes', gasto['mes'])
+    anio = request.form.get('anio', gasto['anio'])
 
-        if gastos_service.update_gasto(gasto_id, categoria_id, descripcion, float(monto)):
-            flash('Gasto actualizado correctamente')
-        else:
-            flash('Error al actualizar el gasto', 'error')
+    if gastos_service.update_gasto(gasto_id, categoria, descripcion, float(monto)):
+        flash('Gasto actualizado correctamente', 'success')
+    else:
+        flash('Error al actualizar el gasto', 'error')
 
-        return redirect(url_for('index', mes=gasto['mes'], anio=gasto['anio']))
+    return redirect(url_for('main.index', mes=mes, anio=anio))
 
-    categorias = categorias_service.list_categorias()
-    return render_template('edit_gasto.html', gasto=gasto, categorias=categorias)
+
+@main_bp.route('/get_gasto/<int:gasto_id>', methods=['GET'])
+def get_gasto(gasto_id):
+    """
+    Obtiene los datos de un gasto en formato JSON para el modal de edición.
+
+    Args:
+        gasto_id (int): ID del gasto a obtener
+
+    Returns:
+        JSON con los datos del gasto o error 404
+    """
+    from flask import jsonify
+
+    gasto = gastos_service.get_gasto_by_id(gasto_id)
+    if not gasto:
+        return jsonify({'error': 'Gasto no encontrado'}), 404
+
+    return jsonify(gasto)
 
 
 @main_bp.route('/gastos', methods=['GET', 'POST'])
@@ -345,7 +363,7 @@ def report():
     presupuesto_mensual = presupuesto_service.get_presupuesto_mensual(
         mes_actual, anio_actual)
     gastos_mes = gastos_service.list_gastos(mes=mes_actual, anio=anio_actual)
-    total_gastos = sum(gasto['monto'] for gasto in gastos_mes)
+    total_gastos = float(sum(gasto['monto'] for gasto in gastos_mes))
 
     # Generar gráficos
     fig_pie = charts_service.generate_pie_chart(mes_actual, anio_actual)
@@ -365,6 +383,7 @@ def report():
                            anio_actual=anio_actual,
                            presupuesto_mensual=presupuesto_mensual,
                            total_gastos=total_gastos,
+                           gastos_mes=gastos_mes,
                            fig_pie=fig_pie,
                            fig_compras=fig_compras,
                            fig_facturas=fig_facturas,

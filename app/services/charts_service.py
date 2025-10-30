@@ -1,6 +1,5 @@
 """Service for generating charts and data visualizations."""
 
-from datetime import datetime
 import pandas as pd
 import plotly.graph_objects as go
 from typing import List, Dict, Optional, Any
@@ -8,7 +7,6 @@ from typing import List, Dict, Optional, Any
 from ..database import cursor_context
 from app.constants import MESES
 from app.utils_df import (
-    get_months as get_months_util,
     set_month_order,
     ensure_all_months,
     df_from_rows,
@@ -71,7 +69,6 @@ def generate_gas_chart(anio: int) -> str:
     fig.update_layout(
         title="Gastos Gasolina",
         yaxis_title="Monto (€)",
-        xaxis_title="Mes",
         xaxis=dict(type="category", tickangle=-30),
         showlegend=False
     )
@@ -93,10 +90,9 @@ def generate_category_bar_chart(categoria: str, anio: int) -> str:
     df = pd.DataFrame(datos_historico, columns=[
         "anio", "mes", "categoria", "descripcion", "total"])
 
-    # Crear dataframe con todos los meses del año actual
-    anio_actual = datetime.now().year
+    # Crear dataframe con todos los meses del año seleccionado
     df_fechas = pd.DataFrame({
-        "anio": [anio_actual] * 12,
+        "anio": [anio] * 12,
         "mes": meses
     })
 
@@ -113,19 +109,31 @@ def generate_category_bar_chart(categoria: str, anio: int) -> str:
 
     fig = go.Figure()
 
-    for descripcion in orden_descripciones:
-        df_desc = df[df['descripcion'] == descripcion].copy()
-        df_meses_vacios = pd.DataFrame({"orden_fecha": meses_completos})
-        df_desc = pd.merge(df_meses_vacios, df_desc,
-                           on="orden_fecha", how="left").fillna({"total": 0})
-
+    # Si no hay descripciones (año futuro sin datos), crear una traza invisible
+    # para que se muestren los meses en el eje X
+    if len(orden_descripciones) == 0:
         fig.add_trace(go.Bar(
-            x=df_desc['orden_fecha'],
-            y=df_desc['total'],
-            name=descripcion,
+            x=meses_completos,
+            y=[0] * len(meses_completos),
+            name="Sin datos",
             visible=True,
-            hovertemplate=f"{descripcion}: %{{y:.2f}}€<extra></extra>"
+            showlegend=False,
+            hoverinfo='skip'
         ))
+    else:
+        for descripcion in orden_descripciones:
+            df_desc = df[df['descripcion'] == descripcion].copy()
+            df_meses_vacios = pd.DataFrame({"orden_fecha": meses_completos})
+            df_desc = pd.merge(df_meses_vacios, df_desc,
+                               on="orden_fecha", how="left").fillna({"total": 0})
+
+            fig.add_trace(go.Bar(
+                x=df_desc['orden_fecha'],
+                y=df_desc['total'],
+                name=descripcion,
+                visible=True,
+                hovertemplate=f"{descripcion}: %{{y:.2f}}€<extra></extra>"
+            ))
 
     fig.update_layout(
         barmode='stack',

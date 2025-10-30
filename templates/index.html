@@ -81,9 +81,9 @@
                             <td>{{ gasto.descripcion }}</td>
                             <td>{{ gasto.monto }} €</td>
                             <td>
-                                <a href="{{ url_for('edit_gasto', id=gasto.id, mes=mes, anio=anio) }}" class="btn btn-warning">
+                                <a href="javascript:void(0);" onclick="abrirModalEdicion({{ gasto.id }})" class="btn btn-warning">
                                     <img src="{{ url_for('static', filename='editar.png') }}" width="23" height="23" alt="Editar"></a>
-                                <a href="{{ url_for('delete_gasto', id=gasto.id, mes=mes, anio=anio) }}" class="btn btn-danger" onclick="return confirm('¿Seguro que quieres eliminar este gasto?');">
+                                <a href="{{ url_for('main.delete_gasto', gasto_id=gasto.id) }}" class="btn btn-danger" onclick="return confirm('¿Seguro que quieres eliminar este gasto?');">
                                     <img src="{{ url_for('static', filename='eliminar.png') }}" width="23" height="23" alt="Eliminar"></a>
                             </td>
                         </tr>
@@ -105,9 +105,13 @@
             </p>
 
             <p><strong>Acumulado:</strong> 
-                <span {% if acumulado_presupuesto < 0 %} style="color: red;" {% endif %}>
-                    {{ "%.2f"|format(acumulado_presupuesto) }} €
-                </span>
+                {% if acumulado_presupuesto is none %}
+                    <span>--</span>
+                {% else %}
+                    <span {% if acumulado_presupuesto < 0 %} style="color: red;" {% endif %}>
+                        {{ "%.2f"|format(acumulado_presupuesto) }} €
+                    </span>
+                {% endif %}
             </p>
         </div>
 
@@ -170,9 +174,65 @@
             </div>
         </div>
 
+        <!-- Modal para editar gasto -->
+        <div id="modalEditarGasto" class="modal">
+            <div class="modal-content">
+                <span class="modal-close" id="closeEditModal">&times;</span>
+                <h2>Editar Gasto</h2>
+                <form method="POST" action="" id="formEditarGasto" class="modal-form">
+                    <div class="form-group">
+                        <label for="edit_categoria">Categoría:</label>
+                        <select name="categoria" id="edit_categoria" required>
+                            {% for categoria in categorias %}
+                                <option value="{{ categoria.nombre }}">{{ categoria.nombre }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="edit_descripcion">Descripción:</label>
+                        <input type="text" name="descripcion" id="edit_descripcion">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="edit_monto">Monto (€):</label>
+                        <input type="number" name="monto" id="edit_monto" step="0.01" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="edit_mes">Mes:</label>
+                        <select name="mes" id="edit_mes" required>
+                            <option value="Enero">Enero</option>
+                            <option value="Febrero">Febrero</option>
+                            <option value="Marzo">Marzo</option>
+                            <option value="Abril">Abril</option>
+                            <option value="Mayo">Mayo</option>
+                            <option value="Junio">Junio</option>
+                            <option value="Julio">Julio</option>
+                            <option value="Agosto">Agosto</option>
+                            <option value="Septiembre">Septiembre</option>
+                            <option value="Octubre">Octubre</option>
+                            <option value="Noviembre">Noviembre</option>
+                            <option value="Diciembre">Diciembre</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="edit_anio">Año:</label>
+                        <input type="number" name="anio" id="edit_anio" required>
+                    </div>
+
+                    <div class="form-buttons">
+                        <button type="submit" class="btn-submit">Actualizar Gasto</button>
+                        <button type="button" class="btn-cancel" id="cancelEditBtn">Cancelar</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
         <!-- JavaScript -->
         <script>
-            // Modal de formulario
+            // Modal de formulario añadir gasto
             const modal = document.getElementById("modalGasto");
             const btnAbrir = document.getElementById("toggleFormBtn");
             const btnCerrar = document.querySelector(".modal-close");
@@ -190,10 +250,57 @@
                 modal.style.display = "none";
             });
 
-            // Cerrar modal al hacer clic fuera del contenido
+            // Modal de editar gasto
+            const modalEditar = document.getElementById("modalEditarGasto");
+            const btnCerrarEdit = document.getElementById("closeEditModal");
+            const btnCancelarEdit = document.getElementById("cancelEditBtn");
+            const formEditar = document.getElementById("formEditarGasto");
+
+            // Función para abrir modal de edición
+            function abrirModalEdicion(gastoId) {
+                // Obtener datos del gasto
+                fetch(`/get_gasto/${gastoId}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.error) {
+                            alert('Error: ' + data.error);
+                            return;
+                        }
+                        
+                        // Rellenar el formulario
+                        document.getElementById('edit_categoria').value = data.categoria;
+                        document.getElementById('edit_descripcion').value = data.descripcion || '';
+                        document.getElementById('edit_monto').value = data.monto;
+                        document.getElementById('edit_mes').value = data.mes;
+                        document.getElementById('edit_anio').value = data.anio;
+                        
+                        // Actualizar action del formulario
+                        formEditar.action = `/edit/${gastoId}`;
+                        
+                        // Mostrar modal
+                        modalEditar.style.display = "flex";
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        alert('Error al cargar los datos del gasto');
+                    });
+            }
+
+            btnCerrarEdit.addEventListener("click", function() {
+                modalEditar.style.display = "none";
+            });
+
+            btnCancelarEdit.addEventListener("click", function() {
+                modalEditar.style.display = "none";
+            });
+
+            // Cerrar modales al hacer clic fuera del contenido
             window.addEventListener("click", function(event) {
                 if (event.target === modal) {
                     modal.style.display = "none";
+                }
+                if (event.target === modalEditar) {
+                    modalEditar.style.display = "none";
                 }
             });
 

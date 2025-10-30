@@ -6,7 +6,7 @@ Usan mocks de base de datos para aislar la lógica de negocio.
 from unittest.mock import patch, MagicMock
 import pytest
 from app.services import gastos_service, presupuesto_service, categorias_service
-from app.exceptions import ValidationError, DatabaseError
+from app.exceptions import ValidationError
 
 
 class TestGastosService:
