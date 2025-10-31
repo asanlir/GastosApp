@@ -149,10 +149,10 @@ def generate_comparison_chart(anio: int) -> Dict[str, Any]:
     """
     Generate budget comparison chart showing monthly expenses vs budget.
 
-    Shows monthly expenses (excluding rent) with color-coded bars (red if over budget, 
-    green if under budget) and a line showing cumulative budget balance.
+    Shows monthly expenses (only categories with incluir_en_resumen=TRUE) with color-coded bars 
+    (red if over budget, green if under budget) and a line showing cumulative budget balance.
 
-    The cumulative balance is calculated considering ALL expenses (including rent)
+    The cumulative balance is calculated considering ALL expenses (including those not in summary)
     compared against the monthly budgets that were active in each month.
     """
     meses = get_months()
@@ -174,7 +174,7 @@ def generate_comparison_chart(anio: int) -> Dict[str, Any]:
 
     # Preparar datos de gastos
     df_gastos = pd.DataFrame(datos_gastos, columns=[
-                             "mes", "total_sin_alquiler", "total_con_alquiler"])
+                             "mes", "total_incluido_resumen", "total_con_todas"])
     df = df_fechas.merge(df_gastos, on=["mes"], how="left").fillna(0)
 
     # Añadir presupuestos mensuales
@@ -188,13 +188,13 @@ def generate_comparison_chart(anio: int) -> Dict[str, Any]:
 
     # Calcular métricas
     # La comparación debe hacerse con el gasto TOTAL (incluyendo alquiler)
-    df["excede_presupuesto"] = df["total_con_alquiler"] > df["presupuesto_mensual"]
+    df["excede_presupuesto"] = df["total_con_todas"] > df["presupuesto_mensual"]
     df["saldo_mensual"] = df["presupuesto_mensual"] - \
-        df["total_con_alquiler"]  # Usa total_con_alquiler
+        df["total_con_todas"]  # Usa total_con_todas
     df["saldo_acumulado"] = df["saldo_mensual"].cumsum()
 
     # Marcar meses con gastos (para mostrar solo esos en la línea)
-    df["tiene_gastos"] = df["total_con_alquiler"] > 0
+    df["tiene_gastos"] = df["total_con_todas"] > 0
 
     # Ordenar meses
     set_month_order(df, "mes")
@@ -210,7 +210,7 @@ def generate_comparison_chart(anio: int) -> Dict[str, Any]:
     colores = ["red" if excede else "green" for excede in df["excede_presupuesto"]]
     fig.add_trace(go.Bar(
         x=df["mes_formateado"],
-        y=df["total_sin_alquiler"],
+        y=df["total_incluido_resumen"],
         name="Gastos (sin alquiler)",
         marker_color=colores,
         hovertemplate="%{y:.2f}€<extra></extra>"

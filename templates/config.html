@@ -47,6 +47,8 @@
           <thead>
             <tr>
               <th class="center-text">Categoría</th>
+              <th class="center-text">Mostrar en gráficas</th>
+              <th class="center-text">Incluir en resumen</th>
               <th class="center-text">Acciones</th>
             </tr>
           </thead>
@@ -54,6 +56,67 @@
             {% for categoria in categorias %}
             <tr>
               <td class="center-text">{{ categoria.nombre }}</td>
+              <td class="center-text">
+                <form method="POST" style="display: inline">
+                  <input
+                    type="hidden"
+                    name="toggle_grafica_categoria_id"
+                    value="{{ categoria.id }}"
+                  />
+                  <input
+                    type="hidden"
+                    name="editar_categoria"
+                    value="{{ categoria.nombre }}"
+                  />
+                  <div class="grafica-toggle-container">
+                    <input
+                      type="checkbox"
+                      name="mostrar_en_graficas"
+                      id="toggle_{{ categoria.id }}"
+                      class="grafica-toggle-input"
+                      {%
+                      if
+                      categoria.mostrar_en_graficas
+                      %}checked{%
+                      endif
+                      %}
+                      onchange="this.form.submit()"
+                    />
+                    <img
+                      src="{{ url_for('static', filename='graf_apagado.png') }}"
+                      alt="Apagado"
+                      class="grafica-toggle-icon grafica-toggle-icon-off"
+                      onclick="document.getElementById('toggle_{{ categoria.id }}').click()"
+                    />
+                    <label for="toggle_{{ categoria.id }}">
+                      <div class="grafica-toggle-slider"></div>
+                    </label>
+                    <img
+                      src="{{ url_for('static', filename='graf_encendido.png') }}"
+                      alt="Encendido"
+                      class="grafica-toggle-icon grafica-toggle-icon-on"
+                      onclick="document.getElementById('toggle_{{ categoria.id }}').click()"
+                    />
+                  </div>
+                </form>
+              </td>
+              <td class="center-text">
+                <form method="POST" style="display: inline">
+                  <input
+                    type="hidden"
+                    name="toggle_resumen_categoria_id"
+                    value="{{ categoria.id }}"
+                  />
+                  <div class="resumen-checkbox-container">
+                    <input
+                      type="checkbox"
+                      name="incluir_en_resumen"
+                      {% if categoria.incluir_en_resumen %}checked{% endif %}
+                      onchange="this.form.submit()"
+                    />
+                  </div>
+                </form>
+              </td>
               <td class="center-text">
                 <div class="actions">
                   <button
@@ -266,7 +329,7 @@
               e.stopPropagation();
               const categoriaId = this.getAttribute("data-id");
               const categoriaNombre = this.getAttribute("data-nombre");
-              console.log("Editando categoría:", categoriaId, categoriaNombre); // Debug
+              console.log("Editando categoría:", categoriaId, categoriaNombre);
               openEditModal(categoriaId, categoriaNombre);
             });
           });

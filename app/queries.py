@@ -294,25 +294,29 @@ def q_insert_categoria() -> str:
 
     Parámetros esperados:
         - nombre (str): Nombre de la categoría.
+        - mostrar_en_graficas (bool): Si se muestra en gráficas (default TRUE).
+        - incluir_en_resumen (bool): Si se incluye en el resumen (default TRUE).
 
     Returns:
         SQL INSERT para categorías.
     """
-    return "INSERT INTO categorias (nombre) VALUES (%s);"
+    return "INSERT INTO categorias (nombre, mostrar_en_graficas, incluir_en_resumen) VALUES (%s, %s, %s);"
 
 
 def q_update_categoria() -> str:
     """
-    Actualiza el nombre de una categoría existente.
+    Actualiza una categoría existente.
 
     Parámetros esperados:
         - nombre (str): Nuevo nombre de la categoría.
+        - mostrar_en_graficas (bool): Si se muestra en gráficas.
+        - incluir_en_resumen (bool): Si se incluye en el resumen.
         - id (int): ID de la categoría a actualizar.
 
     Returns:
         SQL UPDATE para categorías.
     """
-    return "UPDATE categorias SET nombre = %s WHERE id = %s;"
+    return "UPDATE categorias SET nombre = %s, mostrar_en_graficas = %s, incluir_en_resumen = %s WHERE id = %s;"
 
 
 def q_delete_categoria() -> str:
@@ -393,24 +397,29 @@ def q_historico_categoria_grouped() -> str:
 
 def q_gastos_mensuales_aggregates() -> str:
     """
-    Obtiene agregados de gastos mensuales (con y sin alquiler) para un año.
+    Obtiene agregados de gastos mensuales para un año.
+    
+    Calcula dos totales:
+    - total_incluido_resumen: solo categorías con incluir_en_resumen=TRUE
+    - total_con_todas: todas las categorías
 
     Parámetros esperados:
         - anio (int): Año de referencia.
 
     Returns:
-        SQL SELECT con CASE para separar gastos con/sin alquiler.
+        SQL SELECT con CASE para separar gastos según incluir_en_resumen.
 
     Uso:
         Para gráficos de comparación presupuestaria.
     """
     return f"""
-        SELECT mes,
-               SUM(CASE WHEN categoria = 'Alquiler' THEN 0 ELSE monto END) as total_sin_alquiler,
-               SUM(monto) as total_con_alquiler
-        FROM gastos
-        WHERE anio = %s
-        GROUP BY mes
+        SELECT g.mes,
+               SUM(CASE WHEN c.incluir_en_resumen = TRUE THEN g.monto ELSE 0 END) as total_incluido_resumen,
+               SUM(g.monto) as total_con_todas
+        FROM gastos g
+        LEFT JOIN categorias c ON g.categoria = c.nombre
+        WHERE g.anio = %s
+        GROUP BY g.mes
         ORDER BY {SQL_MONTH_FIELD};
     """
 

@@ -25,12 +25,14 @@ def list_categorias() -> List[Dict[str, Any]]:
         return list(cursor.fetchall())
 
 
-def add_categoria(nombre: str) -> bool:
+def add_categoria(nombre: str, mostrar_en_graficas: bool = True, incluir_en_resumen: bool = True) -> bool:
     """
     Agrega una nueva categoría.
 
     Args:
         nombre: Nombre de la categoría
+        mostrar_en_graficas: Si la categoría se muestra en gráficas (default: True)
+        incluir_en_resumen: Si la categoría se incluye en el resumen (default: True)
 
     Returns:
         True si la categoría fue agregada correctamente, False en caso contrario
@@ -44,7 +46,8 @@ def add_categoria(nombre: str) -> bool:
 
     try:
         with cursor_context() as (conn, cursor):
-            cursor.execute(q_insert_categoria(), (nombre.strip(),))
+            cursor.execute(q_insert_categoria(),
+                           (nombre.strip(), mostrar_en_graficas, incluir_en_resumen))
             conn.commit()
             return True
     except DatabaseError:
@@ -53,7 +56,7 @@ def add_categoria(nombre: str) -> bool:
         raise DatabaseError(f"Error al agregar categoría: {e}") from e
 
 
-def update_categoria(categoria_id: int, nombre: str) -> bool:
+def update_categoria(categoria_id: int, nombre: str, mostrar_en_graficas: bool = True, incluir_en_resumen: bool = True) -> bool:
     """
     Actualiza una categoría existente.
     Los gastos asociados se actualizan automáticamente gracias a ON UPDATE CASCADE.
@@ -61,6 +64,8 @@ def update_categoria(categoria_id: int, nombre: str) -> bool:
     Args:
         categoria_id: ID de la categoría a actualizar
         nombre: Nuevo nombre de la categoría
+        mostrar_en_graficas: Si la categoría se muestra en gráficas
+        incluir_en_resumen: Si la categoría se incluye en el resumen
 
     Returns:
         True si la categoría fue actualizada correctamente, False en caso contrario
@@ -76,7 +81,7 @@ def update_categoria(categoria_id: int, nombre: str) -> bool:
         with cursor_context() as (conn, cursor):
             # Verificar que la categoría existe
             cursor.execute(
-                "SELECT nombre FROM categorias WHERE id = %s", (categoria_id,))
+                "SELECT nombre, mostrar_en_graficas, incluir_en_resumen FROM categorias WHERE id = %s", (categoria_id,))
             result = cursor.fetchone()
 
             if not result:
@@ -85,12 +90,15 @@ def update_categoria(categoria_id: int, nombre: str) -> bool:
             nombre_anterior = result['nombre']
             nuevo_nombre = nombre.strip()
 
-            # Si el nombre no cambió, no hacer nada
-            if nombre_anterior == nuevo_nombre:
+            # Si nada cambió, no hacer nada
+            if (nombre_anterior == nuevo_nombre and 
+                result['mostrar_en_graficas'] == mostrar_en_graficas and 
+                result['incluir_en_resumen'] == incluir_en_resumen):
                 return True
 
             # Actualizar la categoría (ON UPDATE CASCADE se encarga de los gastos)
-            cursor.execute(q_update_categoria(), (nuevo_nombre, categoria_id))
+            cursor.execute(q_update_categoria(), (nuevo_nombre,
+                           mostrar_en_graficas, incluir_en_resumen, categoria_id))
             conn.commit()
             return True
     except DatabaseError:

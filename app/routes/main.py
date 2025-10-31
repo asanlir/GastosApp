@@ -367,12 +367,18 @@ def report():
 
     # Generar gráficos
     fig_pie = charts_service.generate_pie_chart(mes_actual, anio_actual)
-    fig_compras = charts_service.generate_category_bar_chart(
-        "Compra", anio_actual)
-    fig_facturas = charts_service.generate_category_bar_chart(
-        "Facturas", anio_actual)
-    fig_gasolina = charts_service.generate_category_bar_chart(
-        "Gasolina", anio_actual)
+
+    # Obtener categorías dinámicamente desde la BD
+    categorias = categorias_service.list_categorias()
+
+    # Generar gráficas solo para categorías con mostrar_en_graficas = TRUE
+    charts_por_categoria = {}
+    for categoria in categorias:
+        # Default True por si el campo no existe
+        if categoria.get('mostrar_en_graficas', True):
+            nombre_categoria = categoria['nombre']
+            charts_por_categoria[nombre_categoria] = charts_service.generate_category_bar_chart(
+                nombre_categoria, anio_actual)
 
     comparison_data = charts_service.generate_comparison_chart(anio_actual)
     fig_sin_alquiler = comparison_data['chart']
@@ -385,9 +391,7 @@ def report():
                            total_gastos=total_gastos,
                            gastos_mes=gastos_mes,
                            fig_pie=fig_pie,
-                           fig_compras=fig_compras,
-                           fig_facturas=fig_facturas,
-                           fig_gasolina=fig_gasolina,
+                           charts_por_categoria=charts_por_categoria,
                            fig_sin_alquiler=fig_sin_alquiler)
 
 
@@ -439,13 +443,96 @@ def config():
                 flash("Error inesperado al eliminar la categoría", "error")
             return redirect(url_for('main.config'))
 
+        elif "toggle_grafica_categoria_id" in request.form:
+            # Actualización del checkbox de mostrar_en_graficas desde la tabla
+            try:
+                categoria_id = int(request.form["toggle_grafica_categoria_id"])
+                # Obtener la categoría actual para preservar incluir_en_resumen
+                categorias = categorias_service.list_categorias()
+                categoria_actual = next(
+                    (c for c in categorias if c['id'] == categoria_id), None)
+                
+                if not categoria_actual:
+                    flash("Categoría no encontrada", "error")
+                    return redirect(url_for('main.config'))
+                
+                nombre_categoria = categoria_actual['nombre']
+                mostrar_en_graficas = "mostrar_en_graficas" in request.form
+                incluir_en_resumen = categoria_actual.get('incluir_en_resumen', True)
+
+                logger.debug(
+                    "Toggle gráfica categoría ID %s: mostrar_en_graficas = %s",
+                    categoria_id, mostrar_en_graficas)
+
+                if categorias_service.update_categoria(categoria_id, nombre_categoria, mostrar_en_graficas, incluir_en_resumen):
+                    logger.info(
+                        "Categoría %s: mostrar_en_graficas actualizado a %s", categoria_id, mostrar_en_graficas)
+                else:
+                    flash("Error al actualizar la configuración de gráfica", "error")
+            except (ValueError, ValidationError) as e:
+                flash(str(e), "error")
+                logger.error("Error al actualizar mostrar_en_graficas: %s", e)
+            except DatabaseError as e:
+                logger.error("Error de base de datos: %s", e)
+                flash("Error inesperado al actualizar la configuración", "error")
+            return redirect(url_for('main.config'))
+
+        elif "toggle_resumen_categoria_id" in request.form:
+            # Actualización del checkbox de incluir_en_resumen desde la tabla
+            try:
+                categoria_id = int(request.form["toggle_resumen_categoria_id"])
+                incluir_en_resumen = "incluir_en_resumen" in request.form
+
+                # Obtener la categoría actual para preservar otros campos
+                categorias = categorias_service.list_categorias()
+                categoria_actual = next(
+                    (c for c in categorias if c['id'] == categoria_id), None)
+
+                if categoria_actual:
+                    if categorias_service.update_categoria(
+                        categoria_id, 
+                        categoria_actual['nombre'], 
+                        categoria_actual.get('mostrar_en_graficas', True),
+                        incluir_en_resumen
+                    ):
+                        logger.info(
+                            "Categoría %s: incluir_en_resumen actualizado a %s", categoria_id, incluir_en_resumen)
+                    else:
+                        flash("Error al actualizar la configuración de resumen", "error")
+                else:
+                    flash("Categoría no encontrada", "error")
+            except (ValueError, ValidationError) as e:
+                flash(str(e), "error")
+                logger.error("Error al actualizar incluir_en_resumen: %s", e)
+            except DatabaseError as e:
+                logger.error("Error de base de datos: %s", e)
+                flash("Error inesperado al actualizar la configuración", "error")
+            return redirect(url_for('main.config'))
+
         elif "editar_categoria" in request.form:
+            # Actualización del nombre desde el modal
             try:
                 categoria_id = int(request.form["categoria_id"])
                 nuevo_nombre = request.form["editar_categoria"].strip()
+
+                # Obtener la categoría actual para preservar mostrar_en_graficas
+                categorias = categorias_service.list_categorias()
+                categoria_actual = next(
+                    (c for c in categorias if c['id'] == categoria_id), None)
+
+                if not categoria_actual:
+                    flash("Categoría no encontrada", "error")
+                    return redirect(url_for('main.config'))
+
+                # Mantener el valor actual de mostrar_en_graficas
+                mostrar_en_graficas = categoria_actual.get(
+                    'mostrar_en_graficas', True)
+
                 logger.debug(
-                    "Intentando editar categoría ID %s con nuevo nombre: %s", categoria_id, nuevo_nombre)
-                if nuevo_nombre and categorias_service.update_categoria(categoria_id, nuevo_nombre):
+                    "Editando nombre categoría ID %s a: %s, manteniendo mostrar_en_graficas: %s",
+                    categoria_id, nuevo_nombre, mostrar_en_graficas)
+
+                if nuevo_nombre and categorias_service.update_categoria(categoria_id, nuevo_nombre, mostrar_en_graficas):
                     flash("Categoría actualizada correctamente", "success")
                     logger.info(
                         "Categoría %s actualizada a '%s'", categoria_id, nuevo_nombre)

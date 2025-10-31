@@ -35,13 +35,17 @@ Ideal para llevar control de gastos familiares, analizar patrones de consumo y m
 - **Gráfico de torta**: Distribución de gastos por categoría
 - **Gráficos de barras**: Evolución histórica (12 meses)
 - **Comparativa presupuesto**: Gastos vs presupuesto mensual
+- **Gráficas configurables**: Control de visibilidad de categorías por gráfica
+- **Resumen personalizado**: Selección de categorías incluidas en evolución presupuesto/gastos
 - Análisis por categorías: Compra, Facturas, Gasolina, etc.
 
 ### ⚙️ Configuración Flexible
 
-- Gestión de categorías personalizables
-- Presupuestos mensuales configurables
-- Histórico completo de gastos
+- **Gestión de categorías personalizables**: Crear, editar y eliminar categorías
+- **Control de visibilidad en gráficas**: Toggle individual por categoría para mostrar/ocultar en gráficos
+- **Inclusión en resumen**: Checkbox para incluir/excluir categorías del gráfico de evolución presupuesto/gastos
+- **Presupuestos mensuales configurables**: Establecer y ajustar presupuestos por mes
+- **Histórico completo de gastos**: Visualización y gestión de todos los registros
 
 ### 💾 Sistema de Backups
 
@@ -197,7 +201,12 @@ gastos_refactor/
 ├── scripts/                    # Scripts de utilidad
 │   ├── backup_db.ps1          # Backup de base de datos
 │   ├── setup_backup_task.ps1  # Configurar tarea programada
-│   └── sync_to_cloud.ps1      # Sincronización OneDrive
+│   ├── sync_to_cloud.ps1      # Sincronización OneDrive
+│   └── migrations/            # Migraciones de base de datos
+│       ├── 001_add_presupuesto_indexes.py
+│       ├── 002_add_mostrar_en_graficas.py
+│       ├── 003_add_incluir_en_resumen.py
+│       └── README.md          # Guía de migraciones
 ├── static/                     # Archivos estáticos
 │   └── styles.css             # Estilos CSS
 ├── templates/                  # Templates HTML
@@ -244,8 +253,47 @@ gastos_refactor/
 ### Gestionar Categorías
 
 1. Ir a **"Configuración"**
-2. Agregar nueva categoría o eliminar existentes
-3. Las categorías se aplican inmediatamente
+2. Agregar nueva categoría o editar/eliminar existentes
+3. **Configurar visibilidad**: Usar el toggle para mostrar/ocultar la categoría en todas las gráficas
+4. **Incluir en resumen**: Marcar checkbox para incluir la categoría en el gráfico de evolución de presupuesto/gastos
+5. Los cambios se aplican inmediatamente a los gráficos
+
+### Configurar Visibilidad de Gráficas
+
+Las categorías tienen dos controles independientes en la página de configuración:
+
+- **Toggle "Mostrar en gráficas"**: Controla si la categoría aparece en el gráfico de torta (distribución) y en las barras de categorías individuales
+- **Checkbox "Incluir en resumen"**: Controla si la categoría se incluye en el gráfico de evolución del presupuesto y total de gastos
+
+Esto te permite, por ejemplo, excluir gastos fijos (como alquiler) del análisis de tendencias sin ocultarlos completamente.
+
+---
+
+## 🔄 Migraciones de Base de Datos
+
+El proyecto incluye un sistema de migraciones para actualizar la estructura de la base de datos de forma segura sin perder datos existentes.
+
+### Ejecutar Migraciones
+
+Las migraciones están en `scripts/migrations/` y deben ejecutarse en orden:
+
+```bash
+# Ejecutar una migración específica
+python scripts/migrations/002_add_mostrar_en_graficas.py
+
+# O ejecutar manualmente con el runner de migraciones
+python -c "from scripts.migrations.002_add_mostrar_en_graficas import up; up()"
+```
+
+### Migraciones Disponibles
+
+1. **001_add_presupuesto_indexes.py**: Añade índices optimizados a la tabla presupuesto
+2. **002_add_mostrar_en_graficas.py**: Añade columna `mostrar_en_graficas` a categorías
+3. **003_add_incluir_en_resumen.py**: Añade columna `incluir_en_resumen` a categorías
+
+Las migraciones son **idempotentes** (se pueden ejecutar múltiples veces de forma segura) y verifican la existencia de columnas antes de añadirlas.
+
+Para más información, consulta: `scripts/migrations/README.md`
 
 ---
 
@@ -434,9 +482,28 @@ Las contribuciones son bienvenidas! Por favor:
 
 ## 📝 Changelog
 
+### v2.2.0 (2025-10-31)
+
+**✨ Control Avanzado de Visualización de Gráficas**
+
+- 📊 **Nueva funcionalidad**: Control granular de visibilidad de categorías en gráficas
+  - Toggle individual por categoría para mostrar/ocultar en gráficos
+  - Checkbox para incluir/excluir del gráfico de evolución presupuesto/gastos
+  - Animaciones suavizadas para transiciones de UI (0.8s cubic-bezier)
+  - Checkboxes personalizados con colores del tema de la aplicación
+- 🗄️ **Base de Datos**:
+  - Control de visibilidad en gráfico de torta y barras
+  - Control de inclusión en gráfico de evolución
+  - Migraciones seguras con detección de columnas existentes
+- 🎨 **Mejoras de UX**
+  - Interfaz intuitiva de configuración con controles visuales claros
+  - Actualización instantánea sin necesidad de guardar manualmente
+  - Diseño responsive y accesible
+- 📚 **Documentación**: README actualizado con nuevas funcionalidades
+
 ### v2.1.0 (2025-10-30)
 
-**✨ Finalización refactorización y mejoras UX**
+**🎉 Finalización refactorización y mejoras UX**
 
 - 🎨 Mejoras de Experiencia de Usuario
 - 🛡️ Protección de Datos
@@ -446,7 +513,8 @@ Las contribuciones son bienvenidas! Por favor:
 
 ### v2.0.0 (2025-01-29)
 
-- ✨ **Refactor completo** a arquitectura modular
+**✨ Refactor completo a arquitectura modular**
+
 - 🧪 Suite completa de 62 tests
 - 📊 Sistema de logging robusto
 - 🔒 Excepciones tipadas y manejo de errores
@@ -455,7 +523,7 @@ Las contribuciones son bienvenidas! Por favor:
 
 ### v1.0.0 (2024-xx-xx)
 
-- 🎉 Versión inicial monolítica
+- 🧱 Versión inicial monolítica
 
 ---
 

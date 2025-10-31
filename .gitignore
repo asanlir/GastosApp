@@ -1,22 +1,61 @@
+# Variables de entorno sensibles
 .env
+.env.local
+.env.*.local
+
+# Python
 __pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.egg
+*.egg-info/
+dist/
+build/
+.eggs/
+.pytest_cache/
+.tox/
+.coverage
+.coverage.*
+htmlcov/
+*.cover
+.hypothesis/
+
+# Entornos virtuales
+.venv/
+venv/
+ENV/
+env/
+.virtualenv/
+
+# IDEs y editores
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Archivos compilados y ejecutables
 *.pyc
-*.odt
-*.ods
-.qodo/
 *.exe
 *.spec
-.build/app/
-.qodo
 *.ico
-.build/
-/.pytest_cache/
-/build/
-/dist/
-/.vscode/
-/.venv/
-venv/
+
+# LibreOffice/OpenOffice
+*.odt
+*.ods
+*.~lock.*
+
+# Herramientas de desarrollo
+.qodo/
+.qodo
+
+# Logs
+logs/
 *.log
+sync.log
 
 # Backups de base de datos (sensibles, no subir)
 backups/
@@ -24,14 +63,17 @@ scripts/backups/
 *.sql
 *.sql.gz
 *.sql.rar
-sync.log
+*.sql.bak
+*.dump
 
 # Archivos temporales
 temp_restore/
 *.tmp
 *.bak
+*.swp
+*.swo
 
-# Archivos de desarrollo
+# Archivos de desarrollo local
 Casa*.ods
 Desarrollo.odt
 PR_REVIEW.md
@@ -40,18 +82,36 @@ REFACTOR_REVIEW.md
 # Documentación interna (no para repo público)
 # Estos archivos contienen información específica de desarrollo,
 # incidentes internos o análisis que no son relevantes para usuarios externos
-# Análisis de incidentes internos
 DATABASE_SAFETY.md
-# Checklist interno de deployment
 PRODUCTION_READINESS.md
-# Notas de preparación para público
 prepare_public_repo.md
-# Script temporal de debugging
 diagnose_context.py
-# Script interno de verificación
 verify_prod.py
-# Script de prueba de conexión
 test_connection.py
 
-# Logs
-logs/*.log
+# Archivos de sistema Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# Archivos de sistema macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# pytest
+.pytest_cache/
+pytest.ini.bak
+
+# MyPy
+.mypy_cache/
+.dmypy.json
+dmypy.json
+
+# Jupyter Notebook
+.ipynb_checkpoints
+
+# PyCharm
+*.iml
+.idea/
