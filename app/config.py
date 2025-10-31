@@ -32,7 +32,15 @@ class DevelopmentConfig(BaseConfig):
 class ProductionConfig(BaseConfig):
     """Configuración de producción"""
     DEBUG = False
-    LOG_LEVEL = 'WARNING'
+    LOG_LEVEL = os.getenv('LOG_LEVEL', 'WARNING')
+
+    # Validar SECRET_KEY en producción
+    def __init__(self):
+        if self.SECRET_KEY == 'dev-key-temporal':
+            raise ValueError(
+                "SEGURIDAD: Debes configurar SECRET_KEY en .env para producción. "
+                "Genera una con: python -c \"import secrets; print(secrets.token_urlsafe(32))\""
+            )
 
 
 # Alias para configuración por defecto

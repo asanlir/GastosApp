@@ -117,7 +117,15 @@ USE economia_db;
 
 ### 5. Configurar Variables de Entorno
 
-Crear archivo `.env` en la raíz del proyecto:
+### 5. Configurar Variables de Entorno
+
+Copia el archivo de ejemplo y configura tus valores:
+
+```bash
+cp .env.example .env
+```
+
+Edita `.env` con tus configuraciones:
 
 ```env
 # Base de datos
@@ -127,12 +135,28 @@ DB_PASSWORD=tu_password
 DB_NAME=economia_db
 DB_PORT=3306
 
-# Flask
+# Flask - IMPORTANTE: Genera una SECRET_KEY única
 SECRET_KEY=tu_clave_secreta_aqui
 
-# Logging (opcional)
+# Logging
 LOG_LEVEL=INFO
 ```
+
+**⚠️ IMPORTANTE para Producción:**
+
+Genera una SECRET_KEY fuerte:
+
+```bash
+python -c "import secrets; print(secrets.token_urlsafe(32))"
+```
+
+O usa el script helper:
+
+```bash
+python scripts/generate_secret_key.py
+```
+
+La aplicación en modo producción **rechazará** iniciar si detecta la SECRET_KEY por defecto.
 
 ### 6. Iniciar la Aplicación
 
@@ -215,8 +239,7 @@ gastos_refactor/
 
 1. Ir a **"Configuración"** en el menú lateral
 2. En la sección "Presupuesto", ingresar monto mensual
-3. Seleccionar mes y año
-4. Hacer clic en **"Guardar Presupuesto"**
+3. Hacer clic en **"Guardar Presupuesto"**
 
 ### Gestionar Categorías
 
