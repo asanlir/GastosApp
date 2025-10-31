@@ -6,6 +6,17 @@ from flask import Flask
 import os
 from app.logging_config import setup_logging
 
+# Importar utilidades para modo frozen
+try:
+    from app.frozen_utils import resource_path, is_frozen
+except ImportError:
+    # Fallback si no existe el módulo
+    def resource_path(path):
+        return path
+
+    def is_frozen():
+        return False
+
 
 def create_app(config_name='default'):
     """
@@ -15,11 +26,18 @@ def create_app(config_name='default'):
     Returns:
         Flask: Instancia configurada de la aplicación Flask
     """
-    # Configura la ubicación de los templates y archivos estáticos usando ruta absoluta
-    current_dir = os.path.dirname(os.path.abspath(__file__))
-    parent_dir = os.path.dirname(current_dir)
-    template_path = os.path.join(parent_dir, 'templates')
-    static_path = os.path.join(parent_dir, 'static')
+    # Configurar rutas según modo de ejecución
+    if is_frozen():
+        # En modo frozen (ejecutable), usar rutas empaquetadas
+        template_path = resource_path('templates')
+        static_path = resource_path('static')
+    else:
+        # En desarrollo, usar rutas absolutas del proyecto
+        current_dir = os.path.dirname(os.path.abspath(__file__))
+        parent_dir = os.path.dirname(current_dir)
+        template_path = os.path.join(parent_dir, 'templates')
+        static_path = os.path.join(parent_dir, 'static')
+
     app = Flask(__name__, template_folder=template_path,
                 static_folder=static_path)
 
@@ -45,5 +63,6 @@ def create_app(config_name='default'):
             app.add_url_rule(rule, endpoint=endpoint,
                              view_func=view_func, methods=methods)
 
-    app.logger.info("Aplicación Flask iniciada correctamente")
+    mode = "FROZEN (ejecutable)" if is_frozen() else "desarrollo"
+    app.logger.info(f"Aplicación Flask iniciada correctamente en modo {mode}")
     return app

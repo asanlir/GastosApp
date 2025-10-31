@@ -4,6 +4,8 @@ Configuración del sistema de logging para la aplicación.
 import logging
 import logging.handlers
 from pathlib import Path
+import os
+from app.frozen_utils import is_frozen
 
 
 def setup_logging(app):
@@ -31,8 +33,13 @@ def setup_logging(app):
         app.logger.addHandler(console_handler)
     else:
         # Crear directorio de logs si no existe
-        logs_dir = Path('logs')
-        logs_dir.mkdir(exist_ok=True)
+        # En modo frozen, usar el directorio del ejecutable
+        if is_frozen():
+            logs_dir = Path(os.path.dirname(
+                os.path.abspath(__file__))).parent / 'logs'
+        else:
+            logs_dir = Path('logs')
+        logs_dir.mkdir(parents=True, exist_ok=True)
 
         # Handler para archivo (con rotación)
         file_handler = logging.handlers.RotatingFileHandler(

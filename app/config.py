@@ -4,8 +4,26 @@ Configuración de la aplicación para diferentes entornos.
 import os
 from dotenv import load_dotenv
 
+# Importar utilidades para modo frozen
+try:
+    from app.frozen_utils import is_frozen, get_env_file
+except ImportError:
+    # Fallback si no existe el módulo
+    def is_frozen():
+        return False
+
+    def get_env_file():
+        return '.env'
+
 # Cargar variables de entorno
-load_dotenv()
+# En modo frozen, cargar .env.exe empaquetado
+# En desarrollo, cargar .env del proyecto
+env_file = get_env_file()
+if os.path.exists(env_file):
+    load_dotenv(env_file)
+else:
+    # Si no existe el archivo, cargar por defecto
+    load_dotenv()
 
 
 class BaseConfig:
