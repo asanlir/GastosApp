@@ -2,20 +2,25 @@
 
 Sistema web completo para gestionar gastos personales/familiares con reportes visuales, presupuestos y backups automáticos.
 
-[![Python 3.11](https://img.shields.io/badge/python-3.11-blue.svg)](https://www.python.org/downloads/)
+[![Python 3.11+](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/)
 [![Flask](https://img.shields.io/badge/flask-3.0-green.svg)](https://flask.palletsprojects.com/)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Tests](https://img.shields.io/badge/tests-62%20passing-brightgreen.svg)]()
+[![MySQL](https://img.shields.io/badge/mysql-8.0+-blue.svg)](https://www.mysql.com/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![Tests](https://img.shields.io/badge/tests-62%20passing-brightgreen.svg)](tests/)
+[![Code Style](https://img.shields.io/badge/code%20style-PEP8-blue.svg)](https://pep8.org/)
+
+---
 
 ## 📋 Descripción
 
 Aplicación web Flask para el seguimiento y análisis de gastos domésticos con:
 
-- **Dashboard intuitivo** con resumen mensual de gastos
-- **Gráficos interactivos** (Plotly) para visualizar tendencias
-- **Presupuestos configurables** con alertas de sobrecosto
-- **Backups automáticos** programados de la base de datos
-- **Tests completos** (54 unitarios + 8 de integración)
+- ✅ **Dashboard intuitivo** con resumen mensual de gastos
+- 📊 **Gráficos interactivos** (Plotly) para visualizar tendencias
+- 💵 **Presupuestos configurables** con alertas de sobrecosto
+- 💾 **Backups automáticos** programados de la base de datos
+- 🧪 **Tests completos** (54 unitarios + 8 de integración)
+- 🖥️ **Ejecutable Windows** para uso sin instalación de Python
 
 Ideal para llevar control de gastos familiares, analizar patrones de consumo y mantenerse dentro del presupuesto.
 
@@ -29,6 +34,7 @@ Ideal para llevar control de gastos familiares, analizar patrones de consumo y m
 - Filtros por mes, año y categoría
 - Comparación automática con presupuesto
 - Alertas visuales de sobrecosto
+- Interfaz responsive y amigable
 
 ### 📊 Reportes y Estadísticas
 
@@ -37,7 +43,7 @@ Ideal para llevar control de gastos familiares, analizar patrones de consumo y m
 - **Comparativa presupuesto**: Gastos vs presupuesto mensual
 - **Gráficas configurables**: Control de visibilidad de categorías por gráfica
 - **Resumen personalizado**: Selección de categorías incluidas en evolución presupuesto/gastos
-- Análisis por categorías: Compra, Facturas, Gasolina, etc.
+- **Interactividad Plotly**: Zoom, hover, descarga de gráficos
 
 ### ⚙️ Configuración Flexible
 
@@ -45,21 +51,31 @@ Ideal para llevar control de gastos familiares, analizar patrones de consumo y m
 - **Control de visibilidad en gráficas**: Toggle individual por categoría para mostrar/ocultar en gráficos
 - **Inclusión en resumen**: Checkbox para incluir/excluir categorías del gráfico de evolución presupuesto/gastos
 - **Presupuestos mensuales configurables**: Establecer y ajustar presupuestos por mes
-- **Histórico completo de gastos**: Visualización y gestión de todos los registros
+- **Histórico completo de gastos**: Visualización y gestión de todos los registros con paginación
 
-### 💾 Sistema de Backups
+### 💾 Sistema de Backups (Windows)
 
 - Backups automáticos programados (3:00 AM)
 - Compresión con WinRAR
 - Sincronización automática a OneDrive
 - Rotación inteligente (7 diarios / 4 semanales / 12 mensuales)
+- Scripts PowerShell incluidos
+
+### 🖥️ Ejecutable Windows
+
+- **Generación de .exe**: Crea un ejecutable independiente con PyInstaller
+- **Auto-lanzamiento**: Abre el navegador automáticamente
+- **Configuración embebida**: No requiere archivos externos
+- **Icono personalizable**: Elige tu propio icono
+- Ver documentación completa en [docs/EXECUTABLE.md](docs/EXECUTABLE.md)
 
 ### 🧪 Calidad de Código
 
-- 62 tests (54 unitarios + 8 de integración)
+- 62 tests automatizados (54 unitarios + 8 de integración)
 - Cobertura completa de servicios y queries
-- CI/CD con GitHub Actions
-- Linting con flake8
+- Linting con flake8 (PEP 8)
+- Type hints en funciones críticas
+- Documentación completa en carpeta `docs/`
 
 ---
 
@@ -482,24 +498,25 @@ Las contribuciones son bienvenidas! Por favor:
 
 ## 📝 Changelog
 
-### v2.2.0 (2025-10-31)
+### v2.2.0 (2025-11-03)
 
-**✨ Control Avanzado de Visualización de Gráficas**
+**🖥️ Sistema de Ejecutable y Mejoras de Visualización**
 
-- 📊 **Nueva funcionalidad**: Control granular de visibilidad de categorías en gráficas
+- �️ **Ejecutable Windows**:
+  - Sistema completo de generación de .exe con PyInstaller
+  - Auto-lanzamiento del navegador al ejecutar
+  - Configuración embebida y aislada
+  - Icono personalizable
+  - Documentación completa en [docs/EXECUTABLE.md](docs/EXECUTABLE.md)
+- 📊 **Control Avanzado de Visualización de Gráficas**:
   - Toggle individual por categoría para mostrar/ocultar en gráficos
   - Checkbox para incluir/excluir del gráfico de evolución presupuesto/gastos
-  - Animaciones suavizadas para transiciones de UI (0.8s cubic-bezier)
-  - Checkboxes personalizados con colores del tema de la aplicación
-- 🗄️ **Base de Datos**:
-  - Control de visibilidad en gráfico de torta y barras
-  - Control de inclusión en gráfico de evolución
-  - Migraciones seguras con detección de columnas existentes
-- 🎨 **Mejoras de UX**
-  - Interfaz intuitiva de configuración con controles visuales claros
-  - Actualización instantánea sin necesidad de guardar manualmente
-  - Diseño responsive y accesible
-- 📚 **Documentación**: README actualizado con nuevas funcionalidades
+  - Animaciones suavizadas para transiciones de UI
+  - Interfaz intuitiva de configuración
+- 🗄️ **Base de Datos Unificada**:
+  - Sincronización entre ejecutable y desarrollo
+  - Sistema de backup único para todo
+- 📚 **Documentación**: README mejorado para publicación
 
 ### v2.1.0 (2025-10-30)
 
@@ -527,9 +544,23 @@ Las contribuciones son bienvenidas! Por favor:
 
 ---
 
+## 🤝 Contribuir
+
+¡Las contribuciones son bienvenidas! Por favor:
+
+1. Fork el proyecto
+2. Crea tu rama de feature (`git checkout -b feature/AmazingFeature`)
+3. Commit tus cambios (`git commit -m 'feat: Add some AmazingFeature'`)
+4. Push a la rama (`git push origin feature/AmazingFeature`)
+5. Abre un Pull Request
+
+Lee [CONTRIBUTING.md](CONTRIBUTING.md) para más detalles sobre nuestro código de conducta y proceso de desarrollo.
+
+---
+
 ## 📄 Licencia
 
-Este proyecto está bajo la Licencia MIT. Ver archivo `LICENSE` para más detalles.
+Este proyecto está bajo la Licencia MIT. Ver archivo [LICENSE](LICENSE) para más detalles.
 
 ---
 
@@ -544,9 +575,17 @@ Este proyecto está bajo la Licencia MIT. Ver archivo `LICENSE` para más detall
 
 ## 🙏 Agradecimientos
 
-- [Flask](https://flask.palletsprojects.com/) - Framework web
-- [Plotly](https://plotly.com/python/) - Gráficos interactivos
-- [PyMySQL](https://pymysql.readthedocs.io/) - Connector MySQL
+- [Flask](https://flask.palletsprojects.com/) - Framework web ligero y potente
+- [Plotly](https://plotly.com/python/) - Gráficos interactivos hermosos
+- [PyMySQL](https://pymysql.readthedocs.io/) - Conector MySQL puro Python
+- [Pandas](https://pandas.pydata.org/) - Análisis de datos
+- [PyInstaller](https://pyinstaller.org/) - Empaquetado de ejecutables
+
+---
+
+## ⭐ ¿Te gustó el proyecto?
+
+Si este proyecto te resultó útil, considera darle una ⭐ en GitHub. ¡Gracias!
 - [Pytest](https://pytest.org/) - Framework de testing
 
 ---

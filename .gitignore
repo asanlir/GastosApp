@@ -80,6 +80,20 @@ Desarrollo.odt
 PR_REVIEW.md
 REFACTOR_REVIEW.md
 
+# Scripts temporales y de desarrollo interno
+add_table.py
+check_db.py
+seed_db.py
+test_db.py
+test_connection.py
+verify_prod.py
+diagnose_context.py
+assign_*.py
+extract_*.py
+find_all_data.py
+recover_*.py
+restore_backup.py
+
 # Documentación interna (no para repo público)
 # Estos archivos contienen información específica de desarrollo,
 # incidentes internos o análisis que no son relevantes para usuarios externos
