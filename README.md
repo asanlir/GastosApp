@@ -91,8 +91,8 @@ Ideal para llevar control de gastos familiares, analizar patrones de consumo y m
 ### 1. Clonar el Repositorio
 
 ```bash
-git clone https://github.com/asanlir/gastos_refactor.git
-cd gastos_refactor
+git clone https://github.com/asanlir/GastosApp.git
+cd GastosApp
 ```
 
 ### 2. Configurar Entorno Virtual
@@ -191,7 +191,7 @@ La aplicación estará disponible en: **http://127.0.0.1:5000**
 ## 📁 Estructura del Proyecto
 
 ```
-gastos_refactor/
+GastosApp/
 ├── app/                        # Paquete principal de la aplicación
 │   ├── __init__.py            # Factory de Flask
 │   ├── config.py              # Configuración por entornos
@@ -502,7 +502,7 @@ Las contribuciones son bienvenidas! Por favor:
 
 **🖥️ Sistema de Ejecutable y Mejoras de Visualización**
 
-- �️ **Ejecutable Windows**:
+- 💽 **Ejecutable Windows**:
   - Sistema completo de generación de .exe con PyInstaller
   - Auto-lanzamiento del navegador al ejecutar
   - Configuración embebida y aislada
@@ -569,7 +569,7 @@ Este proyecto está bajo la Licencia MIT. Ver archivo [LICENSE](LICENSE) para m�
 **Alejandro Sánchez**
 
 - GitHub: [@asanlir](https://github.com/asanlir)
-- Repository: [gastos_refactor](https://github.com/asanlir/gastos_refactor)
+- Repository: [GastosApp](https://github.com/asanlir/GastosApp)
 
 ---
 
@@ -586,6 +586,7 @@ Este proyecto está bajo la Licencia MIT. Ver archivo [LICENSE](LICENSE) para m�
 ## ⭐ ¿Te gustó el proyecto?
 
 Si este proyecto te resultó útil, considera darle una ⭐ en GitHub. ¡Gracias!
+
 - [Pytest](https://pytest.org/) - Framework de testing
 
 ---
@@ -594,8 +595,8 @@ Si este proyecto te resultó útil, considera darle una ⭐ en GitHub. ¡Gracias
 
 Si encuentras algún problema o tienes sugerencias:
 
-- 🐛 [Reportar un bug](https://github.com/asanlir/gastos_refactor/issues)
-- 💡 [Solicitar una feature](https://github.com/asanlir/gastos_refactor/issues)
+- 🐛 [Reportar un bug](https://github.com/asanlir/GastosApp/issues)
+- 💡 [Solicitar una feature](https://github.com/asanlir/GastosApp/issues)
 - 📧 Contacto: [Crear issue en GitHub]
 
 ---

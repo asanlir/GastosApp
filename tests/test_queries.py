@@ -198,8 +198,8 @@ class TestCategoriasQueries:
         sql = q_insert_categoria()
 
         assert "INSERT INTO categorias" in sql
-        assert "(nombre)" in sql
-        assert "VALUES (%s)" in sql
+        assert "(nombre, mostrar_en_graficas, incluir_en_resumen)" in sql
+        assert "VALUES (%s, %s, %s)" in sql
 
     def test_q_update_categoria(self):
         """Verifica query para actualizar categoría."""
@@ -251,10 +251,10 @@ class TestGraficosQueries:
         """Verifica query para agregados mensuales."""
         sql = q_gastos_mensuales_aggregates()
 
-        assert "SELECT mes" in sql
-        assert "SUM(CASE WHEN categoria = 'Alquiler' THEN 0 ELSE monto END)" in sql
-        assert "SUM(monto) as total_con_alquiler" in sql
-        assert "WHERE anio = %s" in sql
+        assert "SELECT g.mes" in sql
+        assert "SUM(CASE WHEN c.incluir_en_resumen = TRUE THEN g.monto ELSE 0 END)" in sql
+        assert "SUM(g.monto) as total_con_todas" in sql
+        assert "WHERE g.anio = %s" in sql
 
     def test_q_presupuestos_mensuales_por_anio(self):
         """Verifica query para presupuestos mensuales por año."""

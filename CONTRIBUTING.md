@@ -36,11 +36,13 @@ Para sugerir nuevas funcionalidades o mejoras:
 ### Pull Requests
 
 1. **Fork el repositorio** y crea tu rama desde `main`:
+
    ```bash
    git checkout -b feature/nombre-descriptivo
    ```
 
 2. **Configura el entorno de desarrollo**:
+
    ```bash
    python -m venv venv
    source venv/bin/activate  # o venv\Scripts\activate en Windows
@@ -48,26 +50,31 @@ Para sugerir nuevas funcionalidades o mejoras:
    ```
 
 3. **Realiza tus cambios**:
+
    - Sigue las convenciones de código existentes
    - Añade tests para nuevas funcionalidades
    - Actualiza la documentación si es necesario
 
 4. **Ejecuta los tests**:
+
    ```bash
    pytest tests/
    ```
 
 5. **Verifica el linting**:
+
    ```bash
    flake8 app/ tests/
    ```
 
 6. **Commit con mensajes descriptivos**:
+
    ```bash
    git commit -m "feat: añadir funcionalidad X"
    ```
 
    Usa prefijos convencionales:
+
    - `feat:` - Nueva funcionalidad
    - `fix:` - Corrección de bug
    - `docs:` - Cambios en documentación
@@ -77,6 +84,7 @@ Para sugerir nuevas funcionalidades o mejoras:
    - `chore:` - Mantenimiento, dependencias
 
 7. **Push tu rama**:
+
    ```bash
    git push origin feature/nombre-descriptivo
    ```
@@ -97,14 +105,15 @@ Para sugerir nuevas funcionalidades o mejoras:
 - **Imports**: Ordena imports (stdlib, third-party, local)
 
 Ejemplo:
+
 ```python
 def calcular_total(gastos: list[dict]) -> float:
     """
     Calcula el total de una lista de gastos.
-    
+
     Args:
         gastos: Lista de diccionarios con información de gastos
-        
+
     Returns:
         Total sumado de todos los gastos
     """

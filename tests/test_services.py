@@ -374,7 +374,11 @@ class TestCategoriasService:
         mock_conn = MagicMock()
         mock_cursor = MagicMock()
         # Simular que la categoría existe con el mismo nombre
-        mock_cursor.fetchone.return_value = {'nombre': 'MismoNombre'}
+        mock_cursor.fetchone.return_value = {
+            'nombre': 'MismoNombre',
+            'mostrar_en_graficas': True,
+            'incluir_en_resumen': True
+        }
         mock_cursor_context.return_value.__enter__.return_value = (
             mock_conn, mock_cursor)
 
