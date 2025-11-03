@@ -1,36 +1,36 @@
 # 📦 Construcción de Ejecutable Aislado
 
-Este documento explica cómo construir un ejecutable (.exe) aislado de la aplicación de gastos que:
+Este documento explica cómo construir un ejecutable (.exe) de la aplicación de gastos que:
 
-- ✅ Usa su propia base de datos (separada del desarrollo)
+- ✅ Usa la misma base de datos que el desarrollo (economia_db)
 - ✅ Tiene configuración embebida (no depende de archivos externos)
-- ✅ No se ve afectado por cambios en el código fuente
 - ✅ Incluye todos los recursos necesarios (templates, static)
+- ✅ Lanza automáticamente el navegador al ejecutarse
 
-## 🎯 ¿Por qué un ejecutable aislado?
+## 🎯 ¿Por qué un ejecutable?
 
-El ejecutable aislado te permite:
+El ejecutable te permite:
 
-1. **Usar la aplicación de forma estable** mientras desarrollas nuevas features
-2. **No preocuparte por romper tu app en producción** al experimentar con el código
-3. **Tener dos entornos completamente separados**: desarrollo y producción
-4. **Distribuir la aplicación** fácilmente sin necesidad de instalar Python
+1. **Usar la aplicación sin abrir VS Code o terminal**
+2. **Acceso rápido** desde el escritorio o menú inicio
+3. **Experiencia de usuario más amigable** con auto-lanzamiento del navegador
+4. **Mismo conjunto de datos** que cuando desarrollas
 
 ## 🏗️ Arquitectura
 
 ```
 ┌─────────────────────────────────────────┐
 │  Código Fuente (Desarrollo)            │
-│  • economia_db (BD desarrollo)          │
+│  • python app.py                        │
 │  • .env (configuración dev)             │
-│  • Modificable sin restricciones        │
+│  • economia_db (BD unificada)           │
 └─────────────────────────────────────────┘
-
+              ↕ (comparten la misma BD)
 ┌─────────────────────────────────────────┐
-│  GastosApp.exe (Producción)             │
-│  • economia_db_prod (BD separada)       │
+│  Gastos.exe (Ejecutable)                │
 │  • .env.exe empaquetado                 │
-│  • Aislado de cambios externos          │
+│  • economia_db (BD unificada)           │
+│  • Auto-lanza navegador                 │
 └─────────────────────────────────────────┘
 ```
 
@@ -42,28 +42,13 @@ El ejecutable aislado te permite:
    pip install pyinstaller
    ```
 
-2. **Base de datos MySQL** funcionando
+2. **Base de datos MySQL** funcionando con `economia_db`
 
 3. **.env.exe configurado** con SECRET_KEY única
 
 ## 🚀 Construcción del Ejecutable
 
-### Paso 0: Migrar Datos (Primera vez)
-
-Si ya tienes datos en `economia_db` y quieres usarlos en el ejecutable:
-
-```bash
-# Migrar todos los datos a economia_db_prod
-python scripts/migrate_to_prod_db.py
-```
-
-Este script:
-
-- ✅ Copia todos los datos de `economia_db` a `economia_db_prod`
-- ✅ Verifica que todos los registros se copiaron correctamente
-- ✅ Mantiene ambas bases de datos separadas
-
-### Paso 1: Construcción
+### Construcción
 
 #### Opción 1: Script Automatizado (Recomendado)
 
@@ -72,13 +57,13 @@ Este script:
 python scripts/build_exe.py
 
 # Con nombre personalizado
-python scripts/build_exe.py --name MiGastos
+python scripts/build_exe.py --name Gastos
 
 # Con icono personalizado
-python scripts/build_exe.py --icon static/pig.ico
+python scripts/build_exe.py --icon static/casa.ico
 
 # Con ambos personalizados
-python scripts/build_exe.py --name ControlGastos --icon static/pig.ico
+python scripts/build_exe.py --name Gastos --icon static/casa.ico
 ```
 
 Este script:
@@ -86,7 +71,7 @@ Este script:
 - ✅ Verifica que .env.exe esté configurado
 - ✅ Genera SECRET_KEY si no existe
 - ✅ Construye el ejecutable con tu nombre e icono elegidos
-- ✅ Verifica/crea la base de datos de producción
+- ✅ Verifica la base de datos
 - ✅ Muestra instrucciones de uso
 
 **Opciones disponibles:**
@@ -95,11 +80,6 @@ Este script:
 | -------- | -------------------------------- | ----------------- |
 | `--name` | Nombre del ejecutable (sin .exe) | `GastosApp`       |
 | `--icon` | Ruta al archivo .ico             | `static/calc.ico` |
-
-**Iconos disponibles:**
-
-- `static/calc.ico` - Icono de calculadora
-- `static/pig.ico` - Icono de alcancía
 
 #### Opción 2: Manual
 
@@ -118,11 +98,11 @@ pyinstaller --name MiGastos --icon static/pig.ico --onefile app.py
 Este archivo contiene la configuración embebida en el ejecutable:
 
 ```env
-# Base de datos de producción (separada del desarrollo)
+# Base de datos unificada (compartida con desarrollo)
 DB_HOST=localhost
 DB_USER=root
 DB_PASSWORD=
-DB_NAME=economia_db_prod      # ← BD separada
+DB_NAME=economia_db      # ← Misma BD que desarrollo
 DB_PORT=3306
 
 # SECRET_KEY única (generada automáticamente)
@@ -137,20 +117,10 @@ FLASK_ENV=production
 
 **⚠️ IMPORTANTE:**
 
-- `.env.exe` está en `.gitignore` (contiene SECRET_KEY)
+- `.env.exe` está en `.gitignore` (contiene SECRET_KEY y password)
 - Usa `.env.exe.example` como plantilla
 - Nunca compartas `.env.exe` públicamente
-
-### Inicializar Base de Datos de Producción
-
-```bash
-# Crear base de datos con datos de ejemplo
-python init_db.py --db-name economia_db_prod --seed-sample
-
-# O migrar desde tu BD actual
-mysqldump -u root -p economia_db > backup.sql
-mysql -u root -p economia_db_prod < backup.sql
-```
+- El ejecutable y el desarrollo usan la misma base de datos
 
 ## 🎮 Uso del Ejecutable
 
@@ -158,24 +128,20 @@ mysql -u root -p economia_db_prod < backup.sql
 
    ```bash
    cd dist
-   GastosApp.exe
+   Gastos.exe
    ```
 
-2. **Abrir en navegador:**
+   El navegador se abrirá automáticamente en `http://127.0.0.1:5000`
 
-   ```
-   http://127.0.0.1:5000
-   ```
-
-3. **Detener:**
+2. **Detener:**
    - Presiona `Ctrl+C` en la consola
 
 ## 📊 Diferencias entre Entornos
 
 | Característica        | Desarrollo                 | Ejecutable            |
 | --------------------- | -------------------------- | --------------------- |
-| **Comando**           | `python app.py`            | `GastosApp.exe`       |
-| **Base de Datos**     | `economia_db`              | `economia_db_prod`    |
+| **Comando**           | `python app.py`            | `Gastos.exe`          |
+| **Base de Datos**     | `economia_db`              | `economia_db`         |
 | **Configuración**     | `.env`                     | `.env.exe` (embebido) |
 | **Logs**              | `DEBUG`                    | `INFO`                |
 | **Cambios en código** | ✅ Se aplican al reiniciar | ❌ Requiere rebuild   |

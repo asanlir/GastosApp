@@ -175,8 +175,8 @@ def build_executable(exe_name='GastosApp', icon_path='static/calc.ico'):
 
 
 def check_database():
-    """Verifica si existe la base de datos de producción"""
-    print_step("Verificando base de datos de producción...")
+    """Verifica si existe la base de datos"""
+    print_step("Verificando base de datos...")
 
     try:
         import pymysql
@@ -185,7 +185,7 @@ def check_database():
         # Cargar .env.exe para obtener configuración
         load_dotenv('.env.exe')
 
-        db_name = os.getenv('DB_NAME', 'economia_db_prod')
+        db_name = os.getenv('DB_NAME', 'economia_db')
         db_host = os.getenv('DB_HOST', 'localhost')
         db_user = os.getenv('DB_USER', 'root')
         db_password = os.getenv('DB_PASSWORD', '')
@@ -242,19 +242,19 @@ def print_instructions(exe_name='GastosApp'):
         print(f"📦 Ubicación: {Colors.BOLD}{exe_path.absolute()}{Colors.END}\n")
 
     print(f"{Colors.BOLD}Características del ejecutable:{Colors.END}")
-    print("  • Base de datos separada (economia_db_prod)")
+    print("  • Base de datos unificada (economia_db)")
     print("  • Configuración aislada (.env.exe empaquetado)")
-    print("  • No afectado por cambios en el código fuente")
+    print("  • Auto-lanzamiento del navegador")
     print("  • Archivos estáticos y templates incluidos\n")
 
     print(f"{Colors.BOLD}Uso:{Colors.END}")
     print(f"  1. Ejecuta: dist\\{exe_name}.exe")
-    print("  2. Abre el navegador en: http://127.0.0.1:5000")
+    print("  2. El navegador se abrirá automáticamente")
     print("  3. Para detener: Ctrl+C en la consola\n")
 
     print(f"{Colors.BOLD}Notas importantes:{Colors.END}")
-    print("  • El ejecutable usa su propia base de datos")
-    print("  • Puedes seguir modificando el código sin afectar el .exe")
+    print("  • El ejecutable y el desarrollo usan la misma base de datos")
+    print("  • Un solo sistema de backup protege todos tus datos")
     print("  • Para actualizar el .exe, vuelve a ejecutar este script")
     print(f"  • Los logs se guardan en: logs/\n")
 
