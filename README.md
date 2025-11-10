@@ -79,7 +79,30 @@ Ideal para llevar control de gastos familiares, analizar patrones de consumo y m
 
 ---
 
-## 🚀 Instalación
+## �️ Capturas de pantalla
+
+Una vista rápida de la aplicación (capturas reales):
+
+<!-- Imagen destacada -->
+<p align="center">
+  <img src="screenshots/agregar_gasto.png" alt="Formulario - Agregar gasto" width="60%" />
+</p>
+
+<!-- Pareja: Estadísticas -->
+<p align="center">
+  <img src="screenshots/estadisticas.png" alt="Estadísticas - Distribución por categorías" width="45%" />
+  <img src="screenshots/estadisticas2.png" alt="Estadísticas - Evolución mensual" width="45%" />
+</p>
+
+<!-- Pareja: Histórico y Configuración -->
+<p align="center">
+  <img src="screenshots/historico.png" alt="Histórico de gastos" width="45%" />
+  <img src="screenshots/configuracion.png" alt="Configuración - Categorías y presupuestos" width="45%" />
+</p>
+
+---
+
+## �🚀 Instalación
 
 ### Requisitos Previos
 
