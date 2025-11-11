@@ -79,7 +79,40 @@ Ideal para llevar control de gastos familiares, analizar patrones de consumo y m
 
 ---
 
-## �️ Capturas de pantalla
+## 📦 Descarga Rápida (Usuarios Finales)
+
+**¿Solo quieres usar la aplicación sin complicaciones técnicas?**
+
+👉 **[Descargar GastosApp v2.2.0 para Windows](https://github.com/asanlir/GastosApp/releases/latest)**
+
+### ¿Qué necesitas?
+
+✅ **Windows 10/11**  
+✅ **MySQL instalado** ([Descargar MySQL](https://dev.mysql.com/downloads/mysql/))
+
+### Pasos sencillos:
+
+1. Descarga el archivo `GastosApp-v2.2.0-Windows.zip` desde [Releases](https://github.com/asanlir/GastosApp/releases/latest)
+2. Descomprime el archivo en tu carpeta preferida
+3. **Doble clic en `Gastos.exe`**
+4. Completa el asistente de configuración web con tus credenciales de MySQL
+5. **¡Listo!** 🎉 La aplicación creará automáticamente la base de datos
+
+La aplicación se abrirá automáticamente en tu navegador.
+
+<p align="center">
+  <img src="screenshots/setup_wizard.svg" alt="Asistente de configuración inicial (.env)" width="35%" />
+  <br>
+  <em>Mini-captura (simulada) del asistente de configuración al primer arranque</em>
+</p>
+
+> **Nota:** Si no tienes MySQL instalado, sigue la [guía rápida de instalación de MySQL](https://dev.mysql.com/doc/mysql-installation-excerpt/8.0/en/).
+
+> Consejo: Si ya tienes un archivo `.env` configurado, el asistente no aparecerá y la aplicación abrirá directamente el panel principal.
+
+---
+
+## 📷 Capturas de pantalla
 
 Una vista rápida de la aplicación (capturas reales):
 
@@ -88,21 +121,65 @@ Una vista rápida de la aplicación (capturas reales):
   <img src="screenshots/agregar_gasto.png" alt="Formulario - Agregar gasto" width="60%" />
 </p>
 
+<br>
+
 <!-- Pareja: Estadísticas -->
 <p align="center">
-  <img src="screenshots/estadisticas.png" alt="Estadísticas - Distribución por categorías" width="45%" />
+  <img src="screenshots/estadisticas.png" alt="Estadísticas - Distribución por categorías" width="45%" style="margin-right: 30px;" />
   <img src="screenshots/estadisticas2.png" alt="Estadísticas - Evolución mensual" width="45%" />
 </p>
 
+<br>
+
 <!-- Pareja: Histórico y Configuración -->
 <p align="center">
-  <img src="screenshots/historico.png" alt="Histórico de gastos" width="45%" />
+  <img src="screenshots/historico.png" alt="Histórico de gastos" width="45%" style="margin-right: 30px;" />
   <img src="screenshots/configuracion.png" alt="Configuración - Categorías y presupuestos" width="45%" />
 </p>
 
 ---
 
-## �🚀 Instalación
+## 🎯 Uso
+
+### Agregar un Gasto
+
+1. En el dashboard, hacer clic en **"Agregar Gasto"**
+2. Seleccionar categoría, descripción y monto
+3. Seleccionar mes y año
+4. Hacer clic en **"Guardar Gasto"**
+
+### Ver Reportes
+
+1. Ir a **"Estadísticas"** en el menú lateral
+2. Seleccionar mes y año
+3. Ver gráficos interactivos de distribución y evolución
+
+### Configurar Presupuesto
+
+1. Ir a **"Configuración"** en el menú lateral
+2. En la sección "Presupuesto", ingresar monto mensual
+3. Hacer clic en **"Guardar Presupuesto"**
+
+### Gestionar Categorías
+
+1. Ir a **"Configuración"**
+2. Agregar nueva categoría o editar/eliminar existentes
+3. **Configurar visibilidad**: Usar el toggle para mostrar/ocultar la categoría en todas las gráficas
+4. **Incluir en resumen**: Marcar checkbox para incluir la categoría en el gráfico de evolución de presupuesto/gastos
+5. Los cambios se aplican inmediatamente a los gráficos
+
+### Configurar Visibilidad de Gráficas
+
+Las categorías tienen dos controles independientes en la página de configuración:
+
+- **Toggle "Mostrar en gráficas"**: Muestra u oculta la gráfica de barras de esa categoría.
+- **Checkbox "Incluir en resumen"**: Controla si la categoría se incluye en el gráfico de evolución del presupuesto y total de gastos
+
+Esto te permite, por ejemplo, excluir gastos fijos (como alquiler) del análisis de tendencias sin ocultarlos completamente.
+
+---
+
+## 🚀 Instalación para Desarrolladores
 
 ### Requisitos Previos
 
@@ -137,30 +214,7 @@ source venv/bin/activate
 pip install -r requirements.txt
 ```
 
-### 4. Configurar Base de Datos
-
-Opción A (recomendada en repo público): usar el script seguro `init_db.py`.
-
-```bash
-# Inicializa una BD nueva con esquema mínimo y datos de ejemplo
-python init_db.py --db-name economia_db --seed-sample
-
-# Si la BD ya contiene datos, el script se detendrá por seguridad.
-# Para reintentar ignorando SOLO la detección (no borra datos):
-python init_db.py --db-name economia_db --force
-```
-
-Opción B (si dispones de los .sql localmente): importar manualmente.
-
-```sql
-CREATE DATABASE economia_db CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
-USE economia_db;
--- Ejecuta tus scripts locales: schema.sql, add_indexes.sql, seed.sql
-```
-
-### 5. Configurar Variables de Entorno
-
-### 5. Configurar Variables de Entorno
+### 4. Configurar Variables de Entorno
 
 Copia el archivo de ejemplo y configura tus valores:
 
@@ -201,13 +255,39 @@ python scripts/generate_secret_key.py
 
 La aplicación en modo producción **rechazará** iniciar si detecta la SECRET_KEY por defecto.
 
-### 6. Iniciar la Aplicación
+### 5. Iniciar la Aplicación
 
 ```bash
 python app.py
 ```
 
+**🎉 ¡Listo!** La aplicación creará automáticamente la base de datos y las tablas en el primer arranque.
+
 La aplicación estará disponible en: **http://127.0.0.1:5000**
+
+> **Nota:** Si tu usuario MySQL no tiene permisos para crear bases de datos, consulta la sección [Inicialización Manual](#inicialización-manual-opcional) más abajo.
+
+---
+
+## 🔧 Inicialización Manual (Opcional)
+
+Si prefieres crear la base de datos manualmente o tu usuario MySQL no tiene permisos de `CREATE DATABASE`, puedes usar el script `init_db.py`:
+
+```bash
+# Inicializa una BD nueva con esquema y datos de ejemplo
+python init_db.py --db-name economia_db --seed-sample
+
+# Si la BD ya existe, usa --force (no borra datos)
+python init_db.py --db-name economia_db --force
+```
+
+O crear manualmente:
+
+```sql
+CREATE DATABASE economia_db CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+USE economia_db;
+SOURCE database/schema.sql;
+```
 
 ---
 
@@ -215,96 +295,56 @@ La aplicación estará disponible en: **http://127.0.0.1:5000**
 
 ```
 GastosApp/
-├── app/                        # Paquete principal de la aplicación
-│   ├── __init__.py            # Factory de Flask
-│   ├── config.py              # Configuración por entornos
-│   ├── constants.py           # Constantes globales
-│   ├── database.py            # Gestión de conexiones BD
-│   ├── exceptions.py          # Excepciones personalizadas
-│   ├── logging_config.py      # Configuración de logs
-│   ├── queries.py             # Queries SQL centralizadas
-│   ├── utils.py               # Funciones auxiliares
-│   ├── utils_df.py            # Utilidades para DataFrames
-│   ├── routes/                # Rutas Flask
-│   │   └── main.py            # Endpoints principales
-│   └── services/              # Lógica de negocio
+├── app/                          # Paquete principal de la aplicación
+│   ├── __init__.py               # Factory de Flask
+│   ├── config.py                 # Configuración por entornos
+│   ├── constants.py              # Constantes globales
+│   ├── database.py               # Gestión de conexiones BD
+│   ├── exceptions.py             # Excepciones personalizadas
+│   ├── logging_config.py         # Configuración de logs
+│   ├── queries.py                # Queries SQL centralizadas
+│   ├── utils.py                  # Funciones auxiliares
+│   ├── utils_df.py               # Utilidades para DataFrames
+│   ├── routes/                   # Rutas Flask
+│   │   └── main.py               # Endpoints principales
+│   └── services/                 # Lógica de negocio
 │       ├── gastos_service.py
 │       ├── categorias_service.py
 │       ├── presupuesto_service.py
 │       └── charts_service.py
-├── database/                   # Scripts de base de datos
-│   ├── schema.sql             # Estructura de tablas
-│   ├── add_indexes.sql        # Índices optimizados
-│   ├── seed.sql               # Datos iniciales
-│   └── INDEXES.md             # Documentación de índices
-├── scripts/                    # Scripts de utilidad
-│   ├── backup_db.ps1          # Backup de base de datos
-│   ├── setup_backup_task.ps1  # Configurar tarea programada
-│   ├── sync_to_cloud.ps1      # Sincronización OneDrive
-│   └── migrations/            # Migraciones de base de datos
+├── database/                     # Scripts de base de datos
+│   ├── schema.sql                # Estructura de tablas
+│   ├── add_indexes.sql           # Índices optimizados
+│   ├── seed.sql                  # Datos iniciales
+│   └── INDEXES.md                # Documentación de índices
+├── scripts/                      # Scripts de utilidad
+│   ├── backup_db.ps1             # Backup de base de datos
+│   ├── setup_backup_task.ps1     # Configurar tarea programada
+│   ├── sync_to_cloud.ps1         # Sincronización OneDrive
+│   └── migrations/               # Migraciones de base de datos
 │       ├── 001_add_presupuesto_indexes.py
 │       ├── 002_add_mostrar_en_graficas.py
 │       ├── 003_add_incluir_en_resumen.py
-│       └── README.md          # Guía de migraciones
-├── static/                     # Archivos estáticos
-│   └── styles.css             # Estilos CSS
-├── templates/                  # Templates HTML
-│   ├── index.html             # Dashboard principal
-│   ├── gastos.html            # Histórico de gastos
-│   ├── report.html            # Reportes y gráficos
-│   └── config.html            # Configuración
-├── tests/                      # Tests automatizados
-│   ├── conftest.py            # Configuración pytest
-│   ├── test_endpoints.py      # Tests de integración
-│   ├── test_services.py       # Tests unitarios servicios
-│   ├── test_queries.py        # Tests unitarios queries
-│   └── test_utils.py          # Tests utilidades
-├── logs/                       # Logs de la aplicación (generado)
-├── app.py                      # Punto de entrada
-├── requirements.txt            # Dependencias producción
-├── requirements-dev.txt        # Dependencias desarrollo
-└── .env                        # Variables de entorno (no versionado)
+│       └── README.md             # Guía de migraciones
+├── static/                       # Archivos estáticos
+│   └── styles.css                # Estilos CSS
+├── templates/                    # Templates HTML
+│   ├── index.html                # Dashboard principal
+│   ├── gastos.html               # Histórico de gastos
+│   ├── report.html               # Reportes y gráficos
+│   └── config.html               # Configuración
+├── tests/                        # Tests automatizados
+│   ├── conftest.py               # Configuración pytest
+│   ├── test_endpoints.py         # Tests de integración
+│   ├── test_services.py          # Tests unitarios servicios
+│   ├── test_queries.py           # Tests unitarios queries
+│   └── test_utils.py             # Tests utilidades
+├── logs/                         # Logs de la aplicación (generado)
+├── app.py                        # Punto de entrada
+├── requirements.txt              # Dependencias producción
+├── requirements-dev.txt          # Dependencias desarrollo
+└── .env                          # Variables de entorno (no versionado)
 ```
-
----
-
-## 🎯 Uso
-
-### Agregar un Gasto
-
-1. En el dashboard, hacer clic en **"Agregar Gasto"**
-2. Seleccionar categoría, descripción y monto
-3. Seleccionar mes y año
-4. Hacer clic en **"Guardar Gasto"**
-
-### Ver Reportes
-
-1. Ir a **"Estadísticas"** en el menú lateral
-2. Seleccionar mes y año
-3. Ver gráficos interactivos de distribución y evolución
-
-### Configurar Presupuesto
-
-1. Ir a **"Configuración"** en el menú lateral
-2. En la sección "Presupuesto", ingresar monto mensual
-3. Hacer clic en **"Guardar Presupuesto"**
-
-### Gestionar Categorías
-
-1. Ir a **"Configuración"**
-2. Agregar nueva categoría o editar/eliminar existentes
-3. **Configurar visibilidad**: Usar el toggle para mostrar/ocultar la categoría en todas las gráficas
-4. **Incluir en resumen**: Marcar checkbox para incluir la categoría en el gráfico de evolución de presupuesto/gastos
-5. Los cambios se aplican inmediatamente a los gráficos
-
-### Configurar Visibilidad de Gráficas
-
-Las categorías tienen dos controles independientes en la página de configuración:
-
-- **Toggle "Mostrar en gráficas"**: Controla si la categoría aparece en el gráfico de torta (distribución) y en las barras de categorías individuales
-- **Checkbox "Incluir en resumen"**: Controla si la categoría se incluye en el gráfico de evolución del presupuesto y total de gastos
-
-Esto te permite, por ejemplo, excluir gastos fijos (como alquiler) del análisis de tendencias sin ocultarlos completamente.
 
 ---
 

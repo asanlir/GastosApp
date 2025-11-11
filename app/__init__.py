@@ -4,6 +4,7 @@ Contiene la factory de la aplicación Flask y configuración inicial.
 """
 from flask import Flask
 import os
+import sys
 from app.logging_config import setup_logging
 
 # Importar utilidades para modo frozen
@@ -47,12 +48,60 @@ def create_app(config_name='default'):
     # Configurar logging
     setup_logging(app)
 
+    # Verificar si existe .env antes de inicializar BD
+    if config_name != 'testing':
+        from app.utils import env_file_exists
+
+        # Si no existe .env, necesitamos redirigir a /setup
+        # Pero no podemos hacer redirect aquí, así que registramos el blueprint primero
+        # y la ruta /setup manejará la configuración inicial
+
+        if env_file_exists():
+            # Solo inicializar BD si .env existe
+            try:
+                from app.database import ensure_database_exists
+                from app.exceptions import DatabaseError
+
+                print("\n🔍 Verificando base de datos...")
+                ensure_database_exists()
+                print("✅ Base de datos lista\n")
+
+            except DatabaseError as e:
+                print(f"\n{e}\n", file=sys.stderr)
+                print("❌ No se pudo inicializar la base de datos.", file=sys.stderr)
+                print("   Por favor revisa tu configuración en .env\n",
+                      file=sys.stderr)
+                sys.exit(1)
+            except Exception as e:
+                print(f"\n❌ Error inesperado: {e}\n", file=sys.stderr)
+                sys.exit(1)
+        else:
+            print("\n⚠️  No se encontró archivo .env")
+            print("📋 Abre http://127.0.0.1:5000/setup para configurar la aplicación\n")
+
     # Registrar blueprints
     # Importar el módulo donde definimos el blueprint
     from app.routes import main as main_module
 
     # Registrar el blueprint principal
     app.register_blueprint(main_module.main_bp)
+
+    # Middleware para redirigir a /setup si no existe .env
+    if config_name != 'testing':
+        @app.before_request
+        def check_env_file():
+            from flask import request, redirect, url_for
+            from app.utils import env_file_exists
+
+            # Permitir acceso a /setup y recursos estáticos sin .env
+            if request.endpoint in ['main.setup', 'main.test_setup', 'static'] or request.path.startswith('/static/'):
+                return None
+
+            # Si no existe .env y no estamos en /setup, redirigir
+            if not env_file_exists():
+                return redirect(url_for('main.setup'))
+
+            return None
 
     # Crear aliases para mantener compatibilidad con endpoints existentes
     for rule, endpoint, methods in main_module.LEGACY_ROUTES:

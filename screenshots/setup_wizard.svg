@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="1200" height="750" viewBox="0 0 1200 750" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Fondo -->
+  <rect width="1200" height="750" fill="#F5F7FB"/>
+
+  <!-- Ventana (simulación navegador) -->
+  <g>
+    <rect x="100" y="60" width="1000" height="630" rx="16" fill="#FFFFFF" stroke="#E5E7EB"/>
+    <!-- Barra superior -->
+    <rect x="100" y="60" width="1000" height="46" rx="16" fill="#F3F4F6"/>
+    <circle cx="132" cy="83" r="6" fill="#EF4444"/>
+    <circle cx="154" cy="83" r="6" fill="#F59E0B"/>
+    <circle cx="176" cy="83" r="6" fill="#10B981"/>
+    <rect x="210" y="73" width="840" height="20" rx="6" fill="#E5E7EB"/>
+  </g>
+
+  <!-- Contenido -->
+  <g>
+    <text x="140" y="140" fill="#111827" font-size="28" font-family="Segoe UI, Roboto, Arial, sans-serif" font-weight="700">Asistente de Configuración</text>
+    <text x="140" y="170" fill="#6B7280" font-size="16" font-family="Segoe UI, Roboto, Arial, sans-serif">Configura tu conexión a MySQL para iniciar la aplicación</text>
+
+    <!-- Card -->
+    <rect x="140" y="190" width="920" height="430" rx="12" fill="#FFFFFF" stroke="#E5E7EB"/>
+
+    <!-- Columna izquierda -->
+    <text x="180" y="235" fill="#374151" font-size="14" font-family="Segoe UI, Roboto, Arial, sans-serif">Host</text>
+    <rect x="180" y="244" width="360" height="44" rx="8" fill="#FFFFFF" stroke="#D1D5DB"/>
+    <text x="196" y="272" fill="#9CA3AF" font-size="16" font-family="Segoe UI, Roboto, Arial, sans-serif">localhost</text>
+
+    <text x="180" y="318" fill="#374151" font-size="14" font-family="Segoe UI, Roboto, Arial, sans-serif">Usuario</text>
+    <rect x="180" y="327" width="360" height="44" rx="8" fill="#FFFFFF" stroke="#D1D5DB"/>
+    <text x="196" y="355" fill="#9CA3AF" font-size="16" font-family="Segoe UI, Roboto, Arial, sans-serif">root</text>
+
+    <text x="180" y="401" fill="#374151" font-size="14" font-family="Segoe UI, Roboto, Arial, sans-serif">Base de datos</text>
+    <rect x="180" y="410" width="360" height="44" rx="8" fill="#FFFFFF" stroke="#D1D5DB"/>
+    <text x="196" y="438" fill="#9CA3AF" font-size="16" font-family="Segoe UI, Roboto, Arial, sans-serif">economia_db</text>
+
+    <!-- Columna derecha -->
+    <text x="600" y="235" fill="#374151" font-size="14" font-family="Segoe UI, Roboto, Arial, sans-serif">Puerto</text>
+    <rect x="600" y="244" width="360" height="44" rx="8" fill="#FFFFFF" stroke="#D1D5DB"/>
+    <text x="616" y="272" fill="#9CA3AF" font-size="16" font-family="Segoe UI, Roboto, Arial, sans-serif">3306</text>
+
+    <text x="600" y="318" fill="#374151" font-size="14" font-family="Segoe UI, Roboto, Arial, sans-serif">Contraseña</text>
+    <rect x="600" y="327" width="360" height="44" rx="8" fill="#FFFFFF" stroke="#D1D5DB"/>
+    <text x="616" y="355" fill="#9CA3AF" font-size="16" font-family="Segoe UI, Roboto, Arial, sans-serif">••••••••</text>
+
+    <!-- Ayuda / Nota -->
+    <text x="140" y="650" fill="#6B7280" font-size="13" font-family="Segoe UI, Roboto, Arial, sans-serif">Tus credenciales se guardarán en un archivo .env solo en tu equipo.</text>
+
+    <!-- Botones -->
+    <rect x="640" y="460" width="170" height="44" rx="8" fill="#3B82F6"/>
+    <text x="655" y="489" fill="#FFFFFF" font-size="16" font-family="Segoe UI, Roboto, Arial, sans-serif" font-weight="600">Probar conexión</text>
+
+    <rect x="825" y="460" width="170" height="44" rx="8" fill="#10B981"/>
+    <text x="835" y="489" fill="#FFFFFF" font-size="16" font-family="Segoe UI, Roboto, Arial, sans-serif" font-weight="600">Guardar y continuar</text>
+
+    <!-- Indicador de estado de prueba (éxito) -->
+    <circle cx="600" cy="482" r="8" fill="#10B981"/>
+    <text x="615" y="487" fill="#059669" font-size="13" font-family="Segoe UI, Roboto, Arial, sans-serif">Conexión exitosa</text>
+  </g>
+</svg>

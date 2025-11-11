@@ -58,8 +58,8 @@ Este directorio contiene scripts para realizar backups automáticos de la base d
 
    - Acción: "Iniciar un programa"
    - Programa: `powershell.exe`
-   - Argumentos: `-ExecutionPolicy Bypass -File "C:\Users\alex0\Documents\Economía\Gastos\Casa\scripts\backup_db.ps1"`
-   - Iniciar en: `C:\Users\alex0\Documents\Economía\Gastos\Casa`
+   - Argumentos: `-ExecutionPolicy Bypass -File "C:\ruta\a\tu\proyecto\scripts\backup_db.ps1"`
+   - Iniciar en: `C:\ruta\a\tu\proyecto`
 
 5. **Configuración Adicional**
 

@@ -10,13 +10,14 @@ Todas las rutas están registradas en el blueprint 'main' y se mantiene
 compatibilidad con endpoints legacy mediante LEGACY_ROUTES.
 """
 from datetime import datetime
-from flask import Blueprint, render_template, request, redirect, url_for, flash, make_response
+from flask import Blueprint, render_template, request, redirect, url_for, flash, make_response, jsonify
 import csv
 from io import StringIO
 
 from app.services import gastos_service, presupuesto_service, categorias_service, charts_service
 from app.logging_config import get_logger
 from app.exceptions import DatabaseError, ValidationError
+from app.utils import create_env_file, test_mysql_connection, env_file_exists
 
 logger = get_logger(__name__)
 
@@ -451,14 +452,15 @@ def config():
                 categorias = categorias_service.list_categorias()
                 categoria_actual = next(
                     (c for c in categorias if c['id'] == categoria_id), None)
-                
+
                 if not categoria_actual:
                     flash("Categoría no encontrada", "error")
                     return redirect(url_for('main.config'))
-                
+
                 nombre_categoria = categoria_actual['nombre']
                 mostrar_en_graficas = "mostrar_en_graficas" in request.form
-                incluir_en_resumen = categoria_actual.get('incluir_en_resumen', True)
+                incluir_en_resumen = categoria_actual.get(
+                    'incluir_en_resumen', True)
 
                 logger.debug(
                     "Toggle gráfica categoría ID %s: mostrar_en_graficas = %s",
@@ -490,15 +492,16 @@ def config():
 
                 if categoria_actual:
                     if categorias_service.update_categoria(
-                        categoria_id, 
-                        categoria_actual['nombre'], 
+                        categoria_id,
+                        categoria_actual['nombre'],
                         categoria_actual.get('mostrar_en_graficas', True),
                         incluir_en_resumen
                     ):
                         logger.info(
                             "Categoría %s: incluir_en_resumen actualizado a %s", categoria_id, incluir_en_resumen)
                     else:
-                        flash("Error al actualizar la configuración de resumen", "error")
+                        flash(
+                            "Error al actualizar la configuración de resumen", "error")
                 else:
                     flash("Categoría no encontrada", "error")
             except (ValueError, ValidationError) as e:
@@ -575,3 +578,136 @@ def config():
         anio_actual=anio_actual,
         meses=meses
     )
+
+
+@main_bp.route('/setup', methods=['GET', 'POST'])
+def setup():
+    """
+    Asistente de configuración inicial para usuarios nuevos.
+
+    GET: Muestra formulario de configuración de MySQL
+    POST: Procesa y guarda la configuración en archivo .env
+
+    Form data (POST):
+        db_host (str): Host de MySQL (default: localhost)
+        db_user (str): Usuario de MySQL (default: root)
+        db_password (str): Contraseña de MySQL
+        db_name (str): Nombre de la base de datos (default: economia_db)
+        db_port (str): Puerto de MySQL (default: 3306)
+
+    Returns:
+        GET: Template 'setup.html' con formulario
+        POST: Redirect a '/' si éxito, formulario con error si falla
+    """
+    logger.info("Acceso al asistente de configuración inicial")
+
+    # Si ya existe .env, redirigir al index
+    if env_file_exists():
+        logger.info("Archivo .env ya existe, redirigiendo a index")
+        return redirect(url_for('main.index'))
+
+    if request.method == 'POST':
+        # Obtener datos del formulario
+        db_host = request.form.get('db_host', 'localhost').strip()
+        db_user = request.form.get('db_user', 'root').strip()
+        db_password = request.form.get('db_password', '').strip()
+        db_name = request.form.get('db_name', 'economia_db').strip()
+        db_port = request.form.get('db_port', '3306').strip()
+
+        logger.debug(
+            "Intentando crear .env con: host=%s, user=%s, db=%s, port=%s",
+            db_host, db_user, db_name, db_port
+        )
+
+        # Validar campos obligatorios
+        if not db_user or not db_name:
+            error = "El usuario y el nombre de la base de datos son obligatorios"
+            logger.warning("Validación fallida: %s", error)
+            return render_template(
+                'setup.html',
+                error=error,
+                db_host=db_host,
+                db_user=db_user,
+                db_password=db_password,
+                db_name=db_name,
+                db_port=db_port
+            )
+
+        # Probar conexión antes de guardar
+        success, message = test_mysql_connection(
+            db_host, db_user, db_password, db_port)
+
+        if not success:
+            logger.warning("Prueba de conexión fallida: %s", message)
+            return render_template(
+                'setup.html',
+                error=message,
+                db_host=db_host,
+                db_user=db_user,
+                db_password=db_password,
+                db_name=db_name,
+                db_port=db_port
+            )
+
+        # Crear archivo .env
+        if create_env_file(db_host, db_user, db_password, db_name, db_port):
+            logger.info("Archivo .env creado exitosamente")
+            flash(
+                '✅ Configuración guardada correctamente. Iniciando aplicación...', 'success')
+            # Redirigir al index para que cargue el .env y cree la BD
+            return redirect(url_for('main.index'))
+        else:
+            error = "Error al crear el archivo de configuración"
+            logger.error(error)
+            return render_template(
+                'setup.html',
+                error=error,
+                db_host=db_host,
+                db_user=db_user,
+                db_password=db_password,
+                db_name=db_name,
+                db_port=db_port
+            )
+
+    # GET: Mostrar formulario con valores por defecto
+    return render_template(
+        'setup.html',
+        db_host='localhost',
+        db_user='root',
+        db_password='',
+        db_name='economia_db',
+        db_port='3306'
+    )
+
+
+@main_bp.route('/setup/test', methods=['POST'])
+def test_setup():
+    """
+    Endpoint AJAX para probar conexión MySQL sin guardar configuración.
+
+    Form data (POST):
+        db_host (str): Host de MySQL
+        db_user (str): Usuario de MySQL
+        db_password (str): Contraseña de MySQL
+        db_port (str): Puerto de MySQL
+
+    Returns:
+        JSON: {'success': bool, 'message': str}
+    """
+    db_host = request.form.get('db_host', 'localhost').strip()
+    db_user = request.form.get('db_user', 'root').strip()
+    db_password = request.form.get('db_password', '').strip()
+    db_port = request.form.get('db_port', '3306').strip()
+
+    logger.debug("Prueba de conexión AJAX: host=%s, user=%s, port=%s",
+                 db_host, db_user, db_port)
+
+    success, message = test_mysql_connection(
+        db_host, db_user, db_password, db_port)
+
+    logger.info("Resultado de prueba de conexión: %s - %s", success, message)
+
+    return jsonify({
+        'success': success,
+        'message': message
+    })

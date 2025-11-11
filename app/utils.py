@@ -1,6 +1,8 @@
 """
 Funciones auxiliares utilizadas en toda la aplicación.
 """
+import os
+import secrets
 from datetime import datetime
 from typing import Any, Dict, Optional, Tuple, TypeVar, Union
 import pymysql
@@ -92,3 +94,102 @@ def format_currency(amount: float) -> str:
         str: Cantidad formateada (ej: "1.234,56 €")
     """
     return f"{amount:,.2f} €".replace(",", "@").replace(".", ",").replace("@", ".")
+
+
+def create_env_file(
+    db_host: str,
+    db_user: str,
+    db_password: str,
+    db_name: str,
+    db_port: str = "3306"
+) -> bool:
+    """
+    Crea el archivo .env con la configuración de la base de datos.
+
+    Args:
+        db_host: Host de MySQL
+        db_user: Usuario de MySQL
+        db_password: Contraseña de MySQL
+        db_name: Nombre de la base de datos
+        db_port: Puerto de MySQL (por defecto 3306)
+
+    Returns:
+        bool: True si se creó correctamente, False en caso de error
+    """
+    try:
+        # Generar SECRET_KEY segura
+        secret_key = secrets.token_urlsafe(32)
+
+        # Contenido del archivo .env
+        env_content = f"""# Configuración de Base de Datos
+DB_HOST={db_host}
+DB_USER={db_user}
+DB_PASSWORD={db_password}
+DB_NAME={db_name}
+DB_PORT={db_port}
+
+# Configuración de Flask
+SECRET_KEY={secret_key}
+
+# Logging
+LOG_LEVEL=INFO
+"""
+
+        # Escribir archivo .env
+        with open('.env', 'w', encoding='utf-8') as f:
+            f.write(env_content)
+
+        return True
+    except Exception as e:
+        print(f"Error al crear archivo .env: {e}")
+        return False
+
+
+def test_mysql_connection(
+    db_host: str,
+    db_user: str,
+    db_password: str,
+    db_port: str = "3306"
+) -> Tuple[bool, str]:
+    """
+    Prueba la conexión a MySQL con las credenciales proporcionadas.
+
+    Args:
+        db_host: Host de MySQL
+        db_user: Usuario de MySQL
+        db_password: Contraseña de MySQL
+        db_port: Puerto de MySQL (por defecto 3306)
+
+    Returns:
+        Tuple[bool, str]: (éxito, mensaje)
+    """
+    try:
+        connection = pymysql.connect(
+            host=db_host,
+            user=db_user,
+            password=db_password,
+            port=int(db_port),
+            connect_timeout=5
+        )
+        connection.close()
+        return True, "✅ Conexión exitosa a MySQL"
+    except pymysql.err.OperationalError as e:
+        error_code = e.args[0]
+        if error_code == 1045:
+            return False, "❌ Usuario o contraseña incorrectos"
+        elif error_code == 2003:
+            return False, f"❌ No se puede conectar a MySQL en {db_host}:{db_port}. Verifica que MySQL esté ejecutándose."
+        else:
+            return False, f"❌ Error de conexión: {e.args[1]}"
+    except Exception as e:
+        return False, f"❌ Error inesperado: {str(e)}"
+
+
+def env_file_exists() -> bool:
+    """
+    Verifica si el archivo .env existe.
+
+    Returns:
+        bool: True si existe, False si no
+    """
+    return os.path.exists('.env')

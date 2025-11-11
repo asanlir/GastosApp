@@ -104,6 +104,10 @@ diagnose_context.py
 verify_prod.py
 test_connection.py
 
+# Documentación técnica de desarrollo interno
+docs/SETUP_WIZARD.md
+docs/SETUP_IMPLEMENTATION_SUMMARY.md
+
 # Archivos de sistema Windows
 Thumbs.db
 ehthumbs.db

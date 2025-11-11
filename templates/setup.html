@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Configuración Inicial - GastosApp</title>
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='styles.css') }}"
+    />
+    <style>
+      .setup-container {
+        max-width: 600px;
+        margin: 50px auto;
+        padding: 40px;
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      }
+
+      .setup-header {
+        text-align: center;
+        margin-bottom: 30px;
+      }
+
+      .setup-header h1 {
+        color: #2c3e50;
+        font-size: 2em;
+        margin-bottom: 10px;
+      }
+
+      .setup-header .emoji {
+        font-size: 3em;
+        margin-bottom: 15px;
+      }
+
+      .setup-header p {
+        color: #7f8c8d;
+        font-size: 1.1em;
+        line-height: 1.6;
+      }
+
+      .form-group {
+        margin-bottom: 20px;
+      }
+
+      .form-group label {
+        display: block;
+        margin-bottom: 8px;
+        color: #34495e;
+        font-weight: 600;
+        font-size: 0.95em;
+      }
+
+      .form-group input {
+        width: 100%;
+        padding: 12px 15px;
+        border: 2px solid #e0e0e0;
+        border-radius: 6px;
+        font-size: 1em;
+        transition: border-color 0.3s;
+        box-sizing: border-box;
+      }
+
+      .form-group input:focus {
+        outline: none;
+        border-color: #3498db;
+      }
+
+      .form-group small {
+        display: block;
+        margin-top: 5px;
+        color: #95a5a6;
+        font-size: 0.85em;
+      }
+
+      .advanced-toggle {
+        margin: 25px 0;
+        text-align: center;
+      }
+
+      .advanced-toggle a {
+        color: #3498db;
+        text-decoration: none;
+        font-size: 0.9em;
+        cursor: pointer;
+      }
+
+      .advanced-toggle a:hover {
+        text-decoration: underline;
+      }
+
+      .advanced-options {
+        display: none;
+        margin-top: 15px;
+        padding-top: 20px;
+        border-top: 1px dashed #e0e0e0;
+      }
+
+      .advanced-options.show {
+        display: block;
+      }
+
+      .button-group {
+        margin-top: 30px;
+        display: flex;
+        gap: 15px;
+      }
+
+      .btn-primary {
+        flex: 1;
+        padding: 15px 30px;
+        background: #3498db;
+        color: white;
+        border: none;
+        border-radius: 6px;
+        font-size: 1.1em;
+        font-weight: 600;
+        cursor: pointer;
+        transition: background 0.3s;
+      }
+
+      .btn-primary:hover {
+        background: #2980b9;
+      }
+
+      .btn-secondary {
+        padding: 15px 30px;
+        background: #95a5a6;
+        color: white;
+        border: none;
+        border-radius: 6px;
+        font-size: 1em;
+        cursor: pointer;
+        transition: background 0.3s;
+      }
+
+      .btn-secondary:hover {
+        background: #7f8c8d;
+      }
+
+      .alert {
+        padding: 15px 20px;
+        border-radius: 6px;
+        margin-bottom: 20px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+
+      .alert-error {
+        background: #ffe6e6;
+        border-left: 4px solid #e74c3c;
+        color: #c0392b;
+      }
+
+      .alert-success {
+        background: #d4edda;
+        border-left: 4px solid #27ae60;
+        color: #155724;
+      }
+
+      .alert-info {
+        background: #d1ecf1;
+        border-left: 4px solid #3498db;
+        color: #0c5460;
+      }
+
+      .spinner {
+        display: none;
+        text-align: center;
+        margin-top: 20px;
+      }
+
+      .spinner.show {
+        display: block;
+      }
+
+      .spinner .loader {
+        border: 4px solid #f3f3f3;
+        border-top: 4px solid #3498db;
+        border-radius: 50%;
+        width: 40px;
+        height: 40px;
+        animation: spin 1s linear infinite;
+        margin: 0 auto;
+      }
+
+      @keyframes spin {
+        0% {
+          transform: rotate(0deg);
+        }
+        100% {
+          transform: rotate(360deg);
+        }
+      }
+    </style>
+  </head>
+  <body
+    style="
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+    "
+  >
+    <div class="setup-container">
+      <div class="setup-header">
+        <div class="emoji">🎉</div>
+        <h1>Bienvenido a GastosApp</h1>
+        <p>
+          Para empezar, necesitamos conectarnos a tu base de datos MySQL.<br />
+          Solo tomará un momento configurar todo.
+        </p>
+      </div>
+
+      {% if error %}
+      <div class="alert alert-error">
+        <span>❌</span>
+        <div>{{ error }}</div>
+      </div>
+      {% endif %} {% if success %}
+      <div class="alert alert-success">
+        <span>✅</span>
+        <div>{{ success }}</div>
+      </div>
+      {% endif %}
+
+      <form method="POST" action="/setup" id="setupForm">
+        <!-- Campos básicos -->
+        <div class="form-group">
+          <label for="db_user">Usuario de MySQL</label>
+          <input
+            type="text"
+            id="db_user"
+            name="db_user"
+            value="{{ db_user or 'root' }}"
+            required
+          />
+          <small>Por defecto suele ser "root"</small>
+        </div>
+
+        <div class="form-group">
+          <label for="db_password">Contraseña de MySQL</label>
+          <input
+            type="password"
+            id="db_password"
+            name="db_password"
+            value="{{ db_password or '' }}"
+            placeholder="Déjalo vacío si no tienes contraseña"
+          />
+          <small>La contraseña que configuraste al instalar MySQL</small>
+        </div>
+
+        <div class="form-group">
+          <label for="db_name">Nombre de la Base de Datos</label>
+          <input
+            type="text"
+            id="db_name"
+            name="db_name"
+            value="{{ db_name or 'economia_db' }}"
+            required
+          />
+          <small>Se creará automáticamente si no existe</small>
+        </div>
+
+        <!-- Toggle para opciones avanzadas -->
+        <div class="advanced-toggle">
+          <a onclick="toggleAdvanced()">⚙️ Opciones avanzadas (opcional)</a>
+        </div>
+
+        <!-- Opciones avanzadas (ocultas por defecto) -->
+        <div class="advanced-options" id="advancedOptions">
+          <div class="alert alert-info">
+            <span>ℹ️</span>
+            <div>
+              Solo cambia estos valores si tu MySQL está en otro servidor o
+              puerto diferente.
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="db_host">Servidor (Host)</label>
+            <input
+              type="text"
+              id="db_host"
+              name="db_host"
+              value="{{ db_host or 'localhost' }}"
+            />
+            <small>Generalmente "localhost" o "127.0.0.1"</small>
+          </div>
+
+          <div class="form-group">
+            <label for="db_port">Puerto</label>
+            <input
+              type="number"
+              id="db_port"
+              name="db_port"
+              value="{{ db_port or '3306' }}"
+            />
+            <small>Puerto estándar de MySQL: 3306</small>
+          </div>
+        </div>
+
+        <!-- Botones -->
+        <div class="button-group">
+          <button
+            type="button"
+            class="btn-secondary"
+            onclick="testConnection()"
+          >
+            Probar Conexión
+          </button>
+          <button type="submit" class="btn-primary">Guardar y Continuar</button>
+        </div>
+      </form>
+
+      <!-- Spinner de carga -->
+      <div class="spinner" id="spinner">
+        <div class="loader"></div>
+        <p style="margin-top: 10px; color: #7f8c8d">Probando conexión...</p>
+      </div>
+    </div>
+
+    <script>
+      function toggleAdvanced() {
+        const advancedOptions = document.getElementById("advancedOptions");
+        advancedOptions.classList.toggle("show");
+      }
+
+      function testConnection() {
+        const spinner = document.getElementById("spinner");
+        const form = document.getElementById("setupForm");
+        const formData = new FormData(form);
+
+        spinner.classList.add("show");
+
+        fetch("/setup/test", {
+          method: "POST",
+          body: formData,
+        })
+          .then((response) => response.json())
+          .then((data) => {
+            spinner.classList.remove("show");
+
+            // Eliminar alertas previas
+            const oldAlerts = document.querySelectorAll(".alert");
+            oldAlerts.forEach((alert) => alert.remove());
+
+            // Crear nueva alerta
+            const alert = document.createElement("div");
+            alert.className =
+              "alert " + (data.success ? "alert-success" : "alert-error");
+            alert.innerHTML = `
+                    <span>${data.success ? "✅" : "❌"}</span>
+                    <div>${data.message}</div>
+                `;
+
+            form.insertAdjacentElement("beforebegin", alert);
+          })
+          .catch((error) => {
+            spinner.classList.remove("show");
+
+            const alert = document.createElement("div");
+            alert.className = "alert alert-error";
+            alert.innerHTML = `
+                    <span>❌</span>
+                    <div>Error al probar la conexión: ${error.message}</div>
+                `;
+
+            form.insertAdjacentElement("beforebegin", alert);
+          });
+      }
+    </script>
+  </body>
+</html>
