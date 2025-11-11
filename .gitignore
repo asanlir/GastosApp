@@ -74,6 +74,9 @@ temp_restore/
 *.swp
 *.swo
 
+# Carpeta de releases (artefactos de distribución)
+release/
+
 # Archivos de desarrollo local
 Casa*.ods
 Desarrollo.odt

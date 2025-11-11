@@ -83,7 +83,7 @@ Ideal para llevar control de gastos familiares, analizar patrones de consumo y m
 
 **¿Solo quieres usar la aplicación sin complicaciones técnicas?**
 
-👉 **[Descargar GastosApp v2.2.0 para Windows](https://github.com/asanlir/GastosApp/releases/latest)**
+👉 **[Descargar GastosApp v2.3.0 para Windows](https://github.com/asanlir/GastosApp/releases/latest)**
 
 ### ¿Qué necesitas?
 
@@ -92,7 +92,7 @@ Ideal para llevar control de gastos familiares, analizar patrones de consumo y m
 
 ### Pasos sencillos:
 
-1. Descarga el archivo `GastosApp-v2.2.0-Windows.zip` desde [Releases](https://github.com/asanlir/GastosApp/releases/latest)
+1. Descarga el archivo `GastosApp-v2.3.0-Windows.zip` desde [Releases](https://github.com/asanlir/GastosApp/releases/latest)
 2. Descomprime el archivo en tu carpeta preferida
 3. **Doble clic en `Gastos.exe`**
 4. Completa el asistente de configuración web con tus credenciales de MySQL
@@ -101,9 +101,9 @@ Ideal para llevar control de gastos familiares, analizar patrones de consumo y m
 La aplicación se abrirá automáticamente en tu navegador.
 
 <p align="center">
-  <img src="screenshots/setup_wizard.svg" alt="Asistente de configuración inicial (.env)" width="35%" />
+  <img src="screenshots/setup_wizard.png" alt="Asistente de configuración inicial (.env)" width="35%" />
   <br>
-  <em>Mini-captura (simulada) del asistente de configuración al primer arranque</em>
+  <em>Asistente de configuración al primer arranque</em>
 </p>
 
 > **Nota:** Si no tienes MySQL instalado, sigue la [guía rápida de instalación de MySQL](https://dev.mysql.com/doc/mysql-installation-excerpt/8.0/en/).
@@ -560,6 +560,26 @@ Las contribuciones son bienvenidas! Por favor:
 ---
 
 ## 📝 Changelog
+
+### v2.3.0 (2025-11-11)
+
+**🎯 Asistente de Configuración y Auto-inicialización**
+
+- 🧙‍♂️ **Asistente de Configuración Web**:
+  - Wizard interactivo al primer arranque del ejecutable
+  - Configuración de credenciales MySQL sin editar archivos
+  - Endpoint AJAX de prueba de conexión en tiempo real
+  - Template completo con opciones avanzadas y validación dinámica
+- 🔄 **Auto-inicialización de Base de Datos**:
+  - Creación automática de `economia_db` y esquema en primer arranque
+  - Middleware de redirección a `/setup` si falta `.env`
+  - Manejo robusto de errores con mensajes guiados"
+- 🔧 **Correcciones README**:
+  - Nota sobre comportamiento con `.env` existente
+- 🔒 **Seguridad**: Sanitización de rutas personales en documentación
+
+**📦 Distribución**: `GastosApp-v2.3.0-Windows.zip` (166 MB)  
+**SHA256**: `D4706A57C3059A042BDF2EDD524453F78913395763AA1E7049603BB802BD5761`
 
 ### v2.2.0 (2025-11-03)
 
