@@ -83,7 +83,7 @@ Ideal para llevar control de gastos familiares, analizar patrones de consumo y m
 
 **¿Solo quieres usar la aplicación sin complicaciones técnicas?**
 
-👉 **[Descargar GastosApp v2.2.0 para Windows](https://github.com/asanlir/GastosApp/releases/latest)**
+👉 **[Descargar GastosApp v2.3.0 para Windows](https://github.com/asanlir/GastosApp/releases/latest)**
 
 ### ¿Qué necesitas?
 
@@ -92,7 +92,7 @@ Ideal para llevar control de gastos familiares, analizar patrones de consumo y m
 
 ### Pasos sencillos:
 
-1. Descarga el archivo `GastosApp-v2.2.0-Windows.zip` desde [Releases](https://github.com/asanlir/GastosApp/releases/latest)
+1. Descarga el archivo `GastosApp-v2.3.0-Windows.zip` desde [Releases](https://github.com/asanlir/GastosApp/releases/latest)
 2. Descomprime el archivo en tu carpeta preferida
 3. **Doble clic en `Gastos.exe`**
 4. Completa el asistente de configuración web con tus credenciales de MySQL
@@ -560,6 +560,28 @@ Las contribuciones son bienvenidas! Por favor:
 ---
 
 ## 📝 Changelog
+
+### v2.3.0 (2025-11-11)
+
+**🎯 Asistente de Configuración y Auto-inicialización**
+
+- 🧙‍♂️ **Asistente de Configuración Web**:
+  - Wizard interactivo al primer arranque del ejecutable
+  - Configuración de credenciales MySQL sin editar archivos
+  - Endpoint AJAX de prueba de conexión en tiempo real
+  - Template completo con opciones avanzadas y validación dinámica
+- 🔄 **Auto-inicialización de Base de Datos**:
+  - Creación automática de `economia_db` y esquema en primer arranque
+  - Middleware de redirección a `/setup` si falta `.env`
+  - Manejo robusto de errores con mensajes guiados"
+- 🔧 **Correcciones README**:
+  - Nota sobre comportamiento con `.env` existente
+- 🔒 **Seguridad**: Sanitización de rutas personales en documentación
+
+**📦 Distribución**: `GastosApp-v2.3.0-Windows.zip` (166 MB)  
+**SHA256**: `D4706A57C3059A042BDF2EDD524453F78913395763AA1E7049603BB802BD5761`
+
+Ver detalles completos en [CHANGELOG.md](CHANGELOG.md)
 
 ### v2.2.0 (2025-11-03)
 
