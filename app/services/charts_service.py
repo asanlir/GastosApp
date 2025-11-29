@@ -1,4 +1,4 @@
-"""Service for generating charts and data visualizations."""
+"""Servicio para generar gráficos y visualizaciones de datos."""
 
 import pandas as pd
 import plotly.graph_objects as go
@@ -23,12 +23,12 @@ from app.queries import (
 
 
 def get_months() -> List[str]:
-    """Returns the list of months in Spanish (delegated to constants)."""
+    """Devuelve la lista de meses en español (delegado a constants)."""
     return MESES
 
 
 def generate_pie_chart(mes: str, anio: int) -> Optional[str]:
-    """Generate pie chart for expenses by category."""
+    """Generar gráfico de torta para gastos por categoría."""
     with cursor_context() as (_, cursor):
         cursor.execute(q_gastos_por_categoria_mes(), (mes, anio))
         gastos_por_categoria = cursor.fetchall()
@@ -48,7 +48,7 @@ def generate_pie_chart(mes: str, anio: int) -> Optional[str]:
 
 
 def generate_gas_chart(anio: int) -> str:
-    """Generate simple bar chart for gas expenses for a specific year."""
+    """Generar gráfico de barras simple para gastos de gasolina de un año específico."""
     with cursor_context() as ((_, cursor)):
         cursor.execute(q_gasolina_por_mes(), (anio,))
         datos_gasolina = cursor.fetchall()
@@ -79,8 +79,8 @@ def generate_gas_chart(anio: int) -> str:
     return to_plot_html(fig)
 
 
-def generate_category_bar_chart(categoria: str, anio: int) -> str:
-    """Generate stacked bar chart for a specific category."""
+def generate_category_chart(categoria: str, anio: int) -> str:
+    """Generar gráfico de barras apiladas para una categoría específica."""
     if categoria == 'Gasolina':
         return generate_gas_chart(anio)
 
@@ -150,13 +150,13 @@ def generate_category_bar_chart(categoria: str, anio: int) -> str:
 
 def generate_comparison_chart(anio: int) -> Dict[str, Any]:
     """
-    Generate budget comparison chart showing monthly expenses vs budget.
+    Generar gráfico de comparación de presupuesto mostrando gastos mensuales vs presupuesto.
 
-    Shows monthly expenses (only categories with incluir_en_resumen=TRUE) with color-coded bars 
-    (red if over budget, green if under budget) and a line showing cumulative budget balance.
+    Muestra gastos mensuales (solo categorías con incluir_en_resumen=TRUE) con barras codificadas por color
+    (rojo si excede presupuesto, verde si está por debajo) y una línea mostrando el saldo presupuestario acumulado.
 
-    The cumulative balance is calculated considering ALL expenses (including those not in summary)
-    compared against the monthly budgets that were active in each month.
+    El saldo acumulado se calcula considerando TODOS los gastos (incluyendo los que no están en resumen)
+    comparados contra los presupuestos mensuales que estaban activos en cada mes.
     """
     meses = get_months()
 
