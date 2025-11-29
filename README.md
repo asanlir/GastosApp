@@ -83,7 +83,7 @@ Ideal para llevar control de gastos familiares, analizar patrones de consumo y m
 
 **¿Solo quieres usar la aplicación sin complicaciones técnicas?**
 
-👉 **[Descargar GastosApp v2.3.0 para Windows](https://github.com/asanlir/GastosApp/releases/latest)**
+👉 **[Descargar GastosApp v2.3.1 para Windows](https://github.com/asanlir/GastosApp/releases/latest)**
 
 ### ¿Qué necesitas?
 
