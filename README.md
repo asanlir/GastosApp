@@ -561,6 +561,15 @@ Las contribuciones son bienvenidas! Por favor:
 
 ## 📝 Changelog
 
+### v2.3.1 (2025-11-29)
+
+**📊 Mejoras en Gráficos y Visualizaciones**
+
+- 📉 **Gráfico de Resumen y Comparativa**:
+  - Nueva línea de gasto medio acumulado
+  - Gasto medio calculado con gastos incluidos en resumen
+  - Visualización en tiempo real de la evolución del promedio mensual
+
 ### v2.3.0 (2025-11-11)
 
 **🎯 Asistente de Configuración y Auto-inicialización**
