@@ -92,7 +92,7 @@ Ideal para llevar control de gastos familiares, analizar patrones de consumo y m
 
 ### Pasos sencillos:
 
-1. Descarga el archivo `GastosApp-v2.3.0-Windows.zip` desde [Releases](https://github.com/asanlir/GastosApp/releases/latest)
+1. Descarga el archivo `GastosApp-v2.3.1-Windows.zip` desde [Releases](https://github.com/asanlir/GastosApp/releases/latest)
 2. Descomprime el archivo en tu carpeta preferida
 3. **Doble clic en `Gastos.exe`**
 4. Completa el asistente de configuración web con tus credenciales de MySQL
