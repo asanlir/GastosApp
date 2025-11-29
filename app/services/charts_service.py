@@ -41,6 +41,9 @@ def generate_pie_chart(mes: str, anio: int) -> Optional[str]:
         fig = go.Figure(
             data=[go.Pie(labels=categorias, values=montos, sort=False)])
 
+        # Añadir título con el mes actual
+        fig.update_layout(title=f'Distribución de gastos {mes}')
+
     return to_plot_html(fig)
 
 
@@ -196,6 +199,15 @@ def generate_comparison_chart(anio: int) -> Dict[str, Any]:
     # Marcar meses con gastos (para mostrar solo esos en la línea)
     df["tiene_gastos"] = df["total_con_todas"] > 0
 
+    # Calcular gasto medio acumulado (solo gastos incluidos en resumen, sin alquiler)
+    df["gasto_acumulado_resumen"] = df["total_incluido_resumen"].cumsum()
+    df["num_meses_con_gastos"] = df["tiene_gastos"].cumsum()
+    df["gasto_medio_acumulado"] = df.apply(
+        lambda row: row["gasto_acumulado_resumen"] /
+        row["num_meses_con_gastos"] if row["num_meses_con_gastos"] > 0 else 0,
+        axis=1
+    )
+
     # Ordenar meses
     set_month_order(df, "mes")
     df = df.sort_values("mes")
@@ -213,7 +225,8 @@ def generate_comparison_chart(anio: int) -> Dict[str, Any]:
         y=df["total_incluido_resumen"],
         name="Gastos (sin alquiler)",
         marker_color=colores,
-        hovertemplate="%{y:.2f}€<extra></extra>"
+        hovertemplate="%{y:.2f}€<extra></extra>",
+        showlegend=False
     ))
 
     # Línea de saldo presupuestario acumulado - solo para meses con gastos
@@ -221,10 +234,20 @@ def generate_comparison_chart(anio: int) -> Dict[str, Any]:
     fig.add_trace(go.Scatter(
         x=df_con_gastos["mes_formateado"],
         y=df_con_gastos["saldo_acumulado"],
-        name="Saldo Presupuestario Acumulado",
+        name="Saldo acumulado",
         mode="lines+markers",
         line=dict(color="blue", width=2),
         hovertemplate="Saldo: %{y:.2f}€<extra></extra>"
+    ))
+
+    # Línea de gasto medio acumulado - solo para meses con gastos
+    fig.add_trace(go.Scatter(
+        x=df_con_gastos["mes_formateado"],
+        y=df_con_gastos["gasto_medio_acumulado"],
+        name="Gasto medio",
+        mode="lines+markers",
+        line=dict(color='#17BECF', width=2, dash='dash'),
+        hovertemplate="Gasto medio: %{y:.2f}€<extra></extra>"
     ))
 
     fig.update_layout(
@@ -232,7 +255,7 @@ def generate_comparison_chart(anio: int) -> Dict[str, Any]:
         yaxis_title="Monto (€)",
         xaxis_title="",
         xaxis=dict(type="category", tickangle=-30),
-        showlegend=False,
+        showlegend=True,
         barmode="relative"
     )
 
