@@ -378,7 +378,7 @@ def report():
         # Default True por si el campo no existe
         if categoria.get('mostrar_en_graficas', True):
             nombre_categoria = categoria['nombre']
-            charts_por_categoria[nombre_categoria] = charts_service.generate_category_bar_chart(
+            charts_por_categoria[nombre_categoria] = charts_service.generate_category_chart(
                 nombre_categoria, anio_actual)
 
     comparison_data = charts_service.generate_comparison_chart(anio_actual)
