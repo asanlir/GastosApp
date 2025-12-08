@@ -83,7 +83,7 @@ Ideal para llevar control de gastos familiares, analizar patrones de consumo y m
 
 **¿Solo quieres usar la aplicación sin complicaciones técnicas?**
 
-👉 **[Descargar GastosApp v2.3.1 para Windows](https://github.com/asanlir/GastosApp/releases/latest)**
+👉 **[Descargar GastosApp v2.3.2 para Windows](https://github.com/asanlir/GastosApp/releases/latest)**
 
 ### ¿Qué necesitas?
 
@@ -92,7 +92,7 @@ Ideal para llevar control de gastos familiares, analizar patrones de consumo y m
 
 ### Pasos sencillos:
 
-1. Descarga el archivo `GastosApp-v2.3.1-Windows.zip` desde [Releases](https://github.com/asanlir/GastosApp/releases/latest)
+1. Descarga el archivo `GastosApp-v2.3.2-Windows.zip` desde [Releases](https://github.com/asanlir/GastosApp/releases/latest)
 2. Descomprime el archivo en tu carpeta preferida
 3. **Doble clic en `Gastos.exe`**
 4. Completa el asistente de configuración web con tus credenciales de MySQL
@@ -560,6 +560,15 @@ Las contribuciones son bienvenidas! Por favor:
 ---
 
 ## 📝 Changelog
+
+### v2.3.2 (2025-12-08)
+
+**🔧 Correcciones de Bugs**
+
+- 🐛 **Fix**: Corregido nombre de función `generate_category_chart` en endpoint `/report`
+  - Resuelto error AttributeError que causaba crash al acceder a reportes
+  - Función generadora de gráficos de categorías ahora se llama correctamente
+- ✅ **Calidad**: Verificación de integridad en compilación
 
 ### v2.3.1 (2025-11-29)
 
