@@ -4,5 +4,6 @@ cryptography
 pandas
 plotly
 python-dotenv
+python-dateutil
 gunicorn
 numpy

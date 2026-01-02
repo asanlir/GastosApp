@@ -398,7 +398,7 @@ def q_historico_categoria_grouped() -> str:
 def q_gastos_mensuales_aggregates() -> str:
     """
     Obtiene agregados de gastos mensuales para un año.
-    
+
     Calcula dos totales:
     - total_incluido_resumen: solo categorías con incluir_en_resumen=TRUE
     - total_con_todas: todas las categorías
@@ -439,4 +439,83 @@ def q_presupuestos_mensuales_por_anio() -> str:
         FROM presupuesto
         WHERE anio = %s
         ORDER BY {SQL_MONTH_FIELD};
+    """
+
+
+def q_gastos_mensuales_last_n_months() -> str:
+    """
+    Obtiene agregados de gastos mensuales para múltiples meses/años.
+
+    Parámetros esperados:
+        - pares (mes, anio) mediante IN clause dinámica
+
+    Returns:
+        SQL SELECT con agregados por mes y año.
+    """
+    return f"""
+        SELECT g.mes, g.anio,
+               SUM(CASE WHEN c.incluir_en_resumen = TRUE THEN g.monto ELSE 0 END) as total_incluido_resumen,
+               SUM(g.monto) as total_con_todas
+        FROM gastos g
+        LEFT JOIN categorias c ON g.categoria = c.nombre
+        WHERE (g.mes, g.anio) IN (PLACEHOLDER)
+        GROUP BY g.mes, g.anio
+        ORDER BY g.anio ASC, {SQL_MONTH_FIELD};
+    """
+
+
+def q_presupuestos_last_n_months() -> str:
+    """
+    Obtiene presupuestos para múltiples meses/años.
+
+    Parámetros esperados:
+        - pares (mes, anio) mediante IN clause dinámica
+
+    Returns:
+        SQL SELECT de presupuestos.
+    """
+    return f"""
+        SELECT mes, anio, monto as presupuesto_mensual
+        FROM presupuesto
+        WHERE (mes, anio) IN (PLACEHOLDER)
+        ORDER BY anio ASC, {SQL_MONTH_FIELD};
+    """
+
+
+def q_historico_categoria_last_n_months() -> str:
+    """
+    Obtiene histórico de gastos de una categoría para múltiples meses/años.
+
+    Parámetros esperados:
+        - categoria (str)
+        - pares (mes, anio) mediante IN clause dinámica
+
+    Returns:
+        SQL SELECT con agrupación para gráficos apilados.
+    """
+    return f"""
+        SELECT anio, mes, categoria, descripcion, SUM(monto) AS total
+        FROM gastos
+        WHERE categoria = %s AND (mes, anio) IN (PLACEHOLDER)
+        GROUP BY anio, mes, categoria, descripcion
+        ORDER BY anio ASC, {SQL_MONTH_FIELD};
+    """
+
+
+def q_gasolina_last_n_months() -> str:
+    """
+    Obtiene gastos de gasolina para múltiples meses/años.
+
+    Parámetros esperados:
+        - pares (mes, anio) mediante IN clause dinámica
+
+    Returns:
+        SQL SELECT SUM para categoría 'Gasolina'.
+    """
+    return f"""
+        SELECT mes, anio, SUM(monto) AS total
+        FROM gastos
+        WHERE categoria = 'Gasolina' AND (mes, anio) IN (PLACEHOLDER)
+        GROUP BY mes, anio
+        ORDER BY anio ASC, {SQL_MONTH_FIELD};
     """
