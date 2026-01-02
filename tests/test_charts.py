@@ -37,6 +37,23 @@ class TestChartsService:
         assert first_month == MESES[first_date.month - 1]
         assert first_year == first_date.year
 
+    def test_get_last_12_months_con_anio_especifico(self):
+        """Test que get_last_12_months con año específico devuelve 12 meses de ese año."""
+        from app.services.charts_service import get_last_12_months
+        from app.constants import MESES
+
+        # Solicitar meses del año 2025
+        result = get_last_12_months(mes='Enero', anio=2025)
+
+        # Verificar que devuelve 12 meses
+        assert len(result) == 12
+
+        # Verificar que todos son del año 2025
+        assert all(anio == 2025 for mes, anio in result)
+
+        # Verificar que incluye todos los meses en orden
+        assert result == [(mes, 2025) for mes in MESES]
+
     def test_format_month_year(self):
         """Test formato de mes y año."""
         from app.services.charts_service import format_month_year
@@ -179,4 +196,90 @@ class TestChartsService:
         ) and 'presupuesto' in resultado['chart'].lower()
 
         # Verificar que se ejecutaron 2 queries (gastos y presupuestos)
+        assert mock_cursor.execute.call_count == 2
+
+    @patch('app.services.charts_service.cursor_context')
+    def test_generate_gas_chart_con_anio_especifico(self, mock_cursor_context):
+        """Test generar gráfico de gasolina para un año específico (modo histórico)."""
+        from app.services.charts_service import generate_gas_chart
+
+        # Mock con datos del año 2023
+        mock_cursor = MagicMock()
+        mock_cursor.fetchall.return_value = [
+            {'mes': 'Enero', 'anio': 2023, 'total': 45.0},
+            {'mes': 'Febrero', 'anio': 2023, 'total': 50.0},
+            {'mes': 'Diciembre', 'anio': 2023, 'total': 55.0}
+        ]
+        mock_cursor_context.return_value.__enter__.return_value = (
+            None, mock_cursor)
+
+        # Ejecutar con año específico
+        resultado = generate_gas_chart(anio=2023, mes='Enero')
+
+        # Verificar que genera HTML
+        assert resultado is not None
+        assert isinstance(resultado, str)
+        assert 'plotly' in resultado.lower()
+
+        # Verificar que el título menciona el año 2023
+        assert '2023' in resultado
+
+    @patch('app.services.charts_service.cursor_context')
+    def test_generate_category_chart_con_anio_especifico(self, mock_cursor_context):
+        """Test generar gráfico de categoría para un año específico."""
+        from app.services.charts_service import generate_category_chart
+
+        # Mock con datos del año 2024
+        mock_cursor = MagicMock()
+        mock_cursor.fetchall.return_value = [
+            {'anio': 2024, 'mes': 'Enero', 'categoria': 'Facturas',
+                'descripcion': 'Luz', 'total': 80.0},
+            {'anio': 2024, 'mes': 'Mayo', 'categoria': 'Facturas',
+                'descripcion': 'Agua', 'total': 30.0},
+        ]
+        mock_cursor_context.return_value.__enter__.return_value = (
+            None, mock_cursor)
+
+        # Ejecutar con año específico
+        resultado = generate_category_chart('Facturas', anio=2024, mes='Enero')
+
+        # Verificar
+        assert resultado is not None
+        assert isinstance(resultado, str)
+        assert 'plotly' in resultado.lower()
+        assert '2024' in resultado
+        assert 'facturas' in resultado.lower()
+
+    @patch('app.services.charts_service.cursor_context')
+    def test_generate_comparison_chart_con_anio_especifico(self, mock_cursor_context):
+        """Test generar gráfico de comparación para un año específico."""
+        from app.services.charts_service import generate_comparison_chart
+
+        # Mock con datos del año 2022
+        mock_cursor = MagicMock()
+        mock_cursor.fetchall.side_effect = [
+            # Gastos
+            [
+                {'mes': 'Enero', 'anio': 2022,
+                    'total_incluido_resumen': 400.0, 'total_con_todas': 500.0},
+                {'mes': 'Junio', 'anio': 2022,
+                    'total_incluido_resumen': 450.0, 'total_con_todas': 550.0}
+            ],
+            # Presupuestos
+            [
+                {'mes': 'Enero', 'anio': 2022, 'presupuesto_mensual': 600.0},
+                {'mes': 'Junio', 'anio': 2022, 'presupuesto_mensual': 650.0}
+            ]
+        ]
+        mock_cursor_context.return_value.__enter__.return_value = (
+            None, mock_cursor)
+
+        # Ejecutar con año específico
+        resultado = generate_comparison_chart(anio=2022, mes='Enero')
+
+        # Verificar
+        assert resultado is not None
+        assert isinstance(resultado, dict)
+        assert 'chart' in resultado
+        assert '2022' in resultado['chart']
         assert mock_cursor.execute.call_count == 2

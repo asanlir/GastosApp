@@ -68,9 +68,10 @@ def create_app(config_name='default'):
 
             except DatabaseError as e:
                 print(f"\n{e}\n", file=sys.stderr)
-                print("❌ No se pudo inicializar la base de datos.", file=sys.stderr)
+                print("❌ No se pudo inicializar la base de datos.",
+                      file=sys.stderr)
                 print("   Por favor revisa tu configuración en .env\n",
-                    file=sys.stderr)
+                      file=sys.stderr)
                 sys.exit(1)
             except Exception as e:
                 print(f"\n❌ Error inesperado: {e}\n", file=sys.stderr)
@@ -110,7 +111,7 @@ def create_app(config_name='default'):
         if view_func:
             # Añadimos una regla duplicada con el endpoint original
             app.add_url_rule(rule, endpoint=endpoint,
-                            view_func=view_func, methods=methods)
+                             view_func=view_func, methods=methods)
 
     mode = "FROZEN (ejecutable)" if is_frozen() else "desarrollo"
     app.logger.info(f"Aplicación Flask iniciada correctamente en modo {mode}")

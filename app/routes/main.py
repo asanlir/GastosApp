@@ -355,10 +355,18 @@ def report():
     meses = charts_service.get_months()
     mes_actual = meses[datetime.now().month - 1]
     anio_actual = datetime.now().year
+    mes_actual_hoy = meses[datetime.now().month - 1]
+    anio_actual_hoy = datetime.now().year
+
+    # Detectar si el usuario seleccionó un filtro de fecha
+    fecha_seleccionada = False
 
     if request.method == "POST" and "mes" in request.form and "anio" in request.form:
         mes_actual = request.form["mes"]
         anio_actual = int(request.form["anio"])
+        # Solo activar modo histórico si la fecha seleccionada NO es la actual
+        if mes_actual != mes_actual_hoy or anio_actual != anio_actual_hoy:
+            fecha_seleccionada = True
 
     # Obtener presupuesto y gastos del mes
     presupuesto_mensual = presupuesto_service.get_presupuesto_mensual(
@@ -373,15 +381,27 @@ def report():
     categorias = categorias_service.list_categorias()
 
     # Generar gráficas solo para categorías con mostrar_en_graficas = TRUE
+    # Modo: si se seleccionó fecha, mostrar año completo; si no, últimos 12 meses
     charts_por_categoria = {}
     for categoria in categorias:
         # Default True por si el campo no existe
         if categoria.get('mostrar_en_graficas', True):
             nombre_categoria = categoria['nombre']
-            charts_por_categoria[nombre_categoria] = charts_service.generate_category_chart(
-                nombre_categoria, anio_actual)
+            if fecha_seleccionada:
+                # Modo histórico: mostrar año completo
+                charts_por_categoria[nombre_categoria] = charts_service.generate_category_chart(
+                    nombre_categoria, anio_actual, mes_actual)
+            else:
+                # Modo deslizante: últimos 12 meses
+                charts_por_categoria[nombre_categoria] = charts_service.generate_category_chart(
+                    nombre_categoria)
 
-    comparison_data = charts_service.generate_comparison_chart(anio_actual)
+    # Comparison chart con el mismo criterio
+    if fecha_seleccionada:
+        comparison_data = charts_service.generate_comparison_chart(
+            anio_actual, mes_actual)
+    else:
+        comparison_data = charts_service.generate_comparison_chart()
     fig_sin_alquiler = comparison_data['chart']
 
     return render_template('report.html',

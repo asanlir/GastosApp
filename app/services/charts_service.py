@@ -33,14 +33,26 @@ def get_months() -> List[str]:
     return MESES
 
 
-def get_last_12_months() -> List[Tuple[str, int]]:
+def get_last_12_months(mes: str = None, anio: int = None) -> List[Tuple[str, int]]:
     """
-    Devuelve una lista con los últimos 12 meses desde hoy.
+    Devuelve una lista con 12 meses.
+
+    Args:
+        mes: Mes de referencia. Si se proporciona junto con anio, devuelve
+             12 meses centrados en esa fecha (del mismo año).
+        anio: Año de referencia.
 
     Returns:
         Lista de tuplas (mes_nombre, anio) ordenadas cronológicamente.
+        - Si mes/anio se proporcionan: 12 meses del año especificado
+        - Si no: últimos 12 meses desde hoy
         Ejemplo: [('Febrero', 2025), ('Marzo', 2025), ..., ('Enero', 2026)]
     """
+    if mes and anio:
+        # Devolver los 12 meses del año especificado
+        return [(mes_nombre, anio) for mes_nombre in MESES]
+
+    # Comportamiento por defecto: últimos 12 meses desde hoy
     today = datetime.now()
     months_list = []
 
@@ -77,15 +89,16 @@ def generate_pie_chart(mes: str, anio: int) -> Optional[str]:
     return to_plot_html(fig)
 
 
-def generate_gas_chart(anio: int = None) -> str:
+def generate_gas_chart(anio: int = None, mes: str = None) -> str:
     """
     Generar gráfico de barras simple para gastos de gasolina.
-    Muestra los últimos 12 meses desde hoy.
 
     Args:
-        anio: Parámetro legacy, se ignora (se mantiene por compatibilidad).
+        anio: Año a visualizar. Si se proporciona, muestra 12 meses de ese año.
+        mes: Mes de referencia (usado junto con anio).
+             Si no se proporcionan, muestra últimos 12 meses desde hoy.
     """
-    last_12_months = get_last_12_months()
+    last_12_months = get_last_12_months(mes, anio)
 
     # Crear placeholders para la cláusula IN
     placeholders = ','.join(['(%s, %s)'] * len(last_12_months))
@@ -105,8 +118,9 @@ def generate_gas_chart(anio: int = None) -> str:
 
     # Crear DataFrame completo con todos los meses (rellena 0 si faltan)
     df_completo = pd.DataFrame(last_12_months, columns=["mes", "anio"])
-    df = df_completo.merge(df, on=["mes", "anio"], how="left").fillna(
-        0).infer_objects(copy=False)
+    df = df_completo.merge(df, on=["mes", "anio"], how="left")
+    df = df.infer_objects(copy=False)
+    df = df.fillna(0)
 
     # Formato de mes con año
     df["mes_formateado"] = df.apply(
@@ -121,8 +135,14 @@ def generate_gas_chart(anio: int = None) -> str:
         hovertemplate="%{y:.2f}€<extra></extra>"
     ))
 
+    # Título dinámico según contexto
+    if anio:
+        titulo = f"Gastos Gasolina ({anio})"
+    else:
+        titulo = "Gastos Gasolina (últimos 12 meses)"
+
     fig.update_layout(
-        title="Gastos Gasolina (últimos 12 meses)",
+        title=titulo,
         yaxis_title="Monto (€)",
         xaxis=dict(type="category", tickangle=-30),
         showlegend=False
@@ -131,19 +151,20 @@ def generate_gas_chart(anio: int = None) -> str:
     return to_plot_html(fig)
 
 
-def generate_category_chart(categoria: str, anio: int = None) -> str:
+def generate_category_chart(categoria: str, anio: int = None, mes: str = None) -> str:
     """
     Generar gráfico de barras apiladas para una categoría específica.
-    Muestra los últimos 12 meses desde hoy.
 
     Args:
         categoria: Nombre de la categoría.
-        anio: Parámetro legacy, se ignora (se mantiene por compatibilidad).
+        anio: Año a visualizar. Si se proporciona, muestra 12 meses de ese año.
+        mes: Mes de referencia (usado junto con anio).
+             Si no se proporcionan, muestra últimos 12 meses desde hoy.
     """
     if categoria == 'Gasolina':
-        return generate_gas_chart()
+        return generate_gas_chart(anio, mes)
 
-    last_12_months = get_last_12_months()
+    last_12_months = get_last_12_months(mes, anio)
 
     # Crear placeholders para la cláusula IN
     placeholders = ','.join(['(%s, %s)'] * len(last_12_months))
@@ -205,7 +226,9 @@ def generate_category_chart(categoria: str, anio: int = None) -> str:
             # Crear DataFrame con todos los meses
             df_meses_vacios = pd.DataFrame({"orden_fecha": meses_completos})
             df_desc = pd.merge(df_meses_vacios, df_desc,
-                               on="orden_fecha", how="left").fillna({"total": 0})
+                               on="orden_fecha", how="left")
+            df_desc = df_desc.infer_objects(copy=False)
+            df_desc = df_desc.fillna({"total": 0})
 
             fig.add_trace(go.Bar(
                 x=df_desc['orden_fecha'],
@@ -215,9 +238,15 @@ def generate_category_chart(categoria: str, anio: int = None) -> str:
                 hovertemplate=f"{descripcion}: %{{y:.2f}}€<extra></extra>"
             ))
 
+    # Título dinámico según contexto
+    if anio:
+        titulo = f"Gastos {categoria} ({anio})"
+    else:
+        titulo = f"Gastos {categoria} (últimos 12 meses)"
+
     fig.update_layout(
         barmode='stack',
-        title=f"Gastos {categoria} (últimos 12 meses)",
+        title=titulo,
         yaxis_title="Monto (€)",
         xaxis=dict(type='category', tickangle=-30),
     )
@@ -225,10 +254,9 @@ def generate_category_chart(categoria: str, anio: int = None) -> str:
     return to_plot_html(fig)
 
 
-def generate_comparison_chart(anio: int = None) -> Dict[str, Any]:
+def generate_comparison_chart(anio: int = None, mes: str = None) -> Dict[str, Any]:
     """
     Generar gráfico de comparación de presupuesto mostrando gastos mensuales vs presupuesto.
-    Muestra los últimos 12 meses desde hoy con continuidad entre años.
 
     Muestra gastos mensuales (solo categorías con incluir_en_resumen=TRUE) con barras codificadas por color
     (rojo si excede presupuesto, verde si está por debajo) y una línea mostrando el saldo presupuestario acumulado.
@@ -237,9 +265,11 @@ def generate_comparison_chart(anio: int = None) -> Dict[str, Any]:
     comparados contra los presupuestos mensuales que estaban activos en cada mes.
 
     Args:
-        anio: Parámetro legacy, se ignora (se mantiene por compatibilidad).
+        anio: Año a visualizar. Si se proporciona, muestra 12 meses de ese año.
+        mes: Mes de referencia (usado junto con anio).
+             Si no se proporcionan, muestra últimos 12 meses desde hoy.
     """
-    last_12_months = get_last_12_months()
+    last_12_months = get_last_12_months(mes, anio)
 
     # Crear placeholders para la cláusula IN
     placeholders = ','.join(['(%s, %s)'] * len(last_12_months))
@@ -277,8 +307,9 @@ def generate_comparison_chart(anio: int = None) -> Dict[str, Any]:
         df_gastos["total_con_todas"] = df_gastos["total_con_todas"].astype(
             float)
 
-    df = df_fechas.merge(df_gastos, on=["mes", "anio"], how="left").fillna(
-        0).infer_objects(copy=False)
+    df = df_fechas.merge(df_gastos, on=["mes", "anio"], how="left")
+    df = df.infer_objects(copy=False)
+    df = df.fillna(0)
 
     # Añadir presupuestos mensuales
     df_presupuesto = pd.DataFrame(datos_presupuesto, columns=[
@@ -290,10 +321,10 @@ def generate_comparison_chart(anio: int = None) -> Dict[str, Any]:
     df = df.merge(df_presupuesto, on=["mes", "anio"], how="left")
 
     # Forward-fill presupuestos (propagar el último presupuesto conocido)
-    df["presupuesto_mensual"] = df["presupuesto_mensual"].ffill(
-    ).infer_objects(copy=False)
-    df["presupuesto_mensual"] = df["presupuesto_mensual"].fillna(
-        0).infer_objects(copy=False)
+    df["presupuesto_mensual"] = df["presupuesto_mensual"].infer_objects(
+        copy=False)
+    df["presupuesto_mensual"] = df["presupuesto_mensual"].ffill()
+    df["presupuesto_mensual"] = df["presupuesto_mensual"].fillna(0)
 
     # Calcular métricas
     df["excede_presupuesto"] = df["total_con_todas"] > df["presupuesto_mensual"]
@@ -351,8 +382,14 @@ def generate_comparison_chart(anio: int = None) -> Dict[str, Any]:
         hovertemplate="Gasto medio: %{y:.2f}€<extra></extra>"
     ))
 
+    # Título dinámico según contexto
+    if anio:
+        titulo = f"Evolución de Presupuesto y Acumulado ({anio})"
+    else:
+        titulo = "Evolución de Presupuesto y Acumulado (últimos 12 meses)"
+
     fig.update_layout(
-        title="Evolución de Presupuesto y Acumulado (últimos 12 meses)",
+        title=titulo,
         yaxis_title="Monto (€)",
         xaxis_title="",
         xaxis=dict(type="category", tickangle=-30),
