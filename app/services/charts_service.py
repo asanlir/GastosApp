@@ -92,6 +92,8 @@ def generate_category_chart(categoria: str, anio: int) -> str:
 
     df = pd.DataFrame(datos_historico, columns=[
         "anio", "mes", "categoria", "descripcion", "total"])
+    # Convertir Decimal a float para evitar errores de tipo
+    df["total"] = df["total"].astype(float)
 
     # Crear dataframe con todos los meses del año seleccionado
     df_fechas = pd.DataFrame({
@@ -99,7 +101,8 @@ def generate_category_chart(categoria: str, anio: int) -> str:
         "mes": meses
     })
 
-    df = df_fechas.merge(df, on=["anio", "mes"], how="left").fillna(0)
+    df = df_fechas.merge(df, on=["anio", "mes"], how="left").fillna(
+        0).infer_objects(copy=False)
     set_month_order(df, "mes")
     df = df.sort_values(["anio", "mes"])
     # Formato coherente: "Enero '25"
@@ -178,16 +181,25 @@ def generate_comparison_chart(anio: int) -> Dict[str, Any]:
     # Preparar datos de gastos
     df_gastos = pd.DataFrame(datos_gastos, columns=[
                              "mes", "total_incluido_resumen", "total_con_todas"])
-    df = df_fechas.merge(df_gastos, on=["mes"], how="left").fillna(0)
+    # Convertir Decimal a float para evitar errores de tipo
+    df_gastos["total_incluido_resumen"] = df_gastos["total_incluido_resumen"].astype(
+        float)
+    df_gastos["total_con_todas"] = df_gastos["total_con_todas"].astype(float)
+    df = df_fechas.merge(df_gastos, on=["mes"], how="left").fillna(
+        0).infer_objects(copy=False)
 
     # Añadir presupuestos mensuales
     df_presupuesto = pd.DataFrame(datos_presupuesto, columns=[
                                   "mes", "presupuesto_mensual"])
+    # Convertir Decimal a float para evitar errores de tipo
+    df_presupuesto["presupuesto_mensual"] = df_presupuesto["presupuesto_mensual"].astype(
+        float)
     df = df.merge(df_presupuesto, on=["mes"], how="left")
 
     # Asegurar presupuesto para cada mes: forward-fill por orden de mes
     ffill_by_month_inplace(df, "presupuesto_mensual", month_col="mes")
-    df["presupuesto_mensual"] = df["presupuesto_mensual"].fillna(0)
+    df["presupuesto_mensual"] = df["presupuesto_mensual"].fillna(
+        0).infer_objects(copy=False)
 
     # Calcular métricas
     # La comparación debe hacerse con el gasto TOTAL (incluyendo alquiler)

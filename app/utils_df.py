@@ -91,7 +91,7 @@ def ffill_by_month_inplace(df: pd.DataFrame, col: str, month_col: str = "mes") -
         return
     set_month_order(df, month_col)
     df.sort_values(month_col, inplace=True)
-    df[col] = df[col].ffill()
+    df[col] = df[col].ffill().infer_objects(copy=False)
 
 
 def decimal_to_float(val, default: float = 0.0) -> float:
