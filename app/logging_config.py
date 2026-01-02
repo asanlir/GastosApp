@@ -15,6 +15,10 @@ def setup_logging(app):
     Args:
         app: Instancia de la aplicación Flask
     """
+    # Si ya hay handlers configurados (reloader de Werkzeug), no reconfigurar
+    if app.logger.handlers:
+        return
+
     # Obtener el nivel de logging desde la configuración
     log_level = getattr(logging, app.config.get('LOG_LEVEL', 'INFO'))
 
@@ -24,7 +28,7 @@ def setup_logging(app):
         datefmt='%Y-%m-%d %H:%M:%S'
     )
 
-    # En modo testing, solo usar StreamHandler para evitar problemas con file descriptors
+    # En modo testing, solo usar StreamHandler
     if app.config.get('TESTING', False):
         console_handler = logging.StreamHandler()
         console_handler.setLevel(log_level)
@@ -51,7 +55,7 @@ def setup_logging(app):
         file_handler.setLevel(log_level)
         file_handler.setFormatter(formatter)
 
-        # Handler para consola (solo en desarrollo)
+        # Handler para consola
         console_handler = logging.StreamHandler()
         console_handler.setLevel(log_level)
         console_handler.setFormatter(formatter)
@@ -59,9 +63,7 @@ def setup_logging(app):
         # Configurar logger de la aplicación
         app.logger.setLevel(log_level)
         app.logger.addHandler(file_handler)
-
-        if app.config.get('DEBUG', False):
-            app.logger.addHandler(console_handler)
+        app.logger.addHandler(console_handler)
 
     # Suprimir logs excesivos de werkzeug en producción
     if not app.config.get('DEBUG', False):
