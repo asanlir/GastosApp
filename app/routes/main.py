@@ -15,7 +15,7 @@ import csv
 from io import StringIO
 
 from app.services import gastos_service, presupuesto_service, categorias_service, charts_service
-from app.logging_config import get_logger
+from app.logging_config import get_logger, print_operation
 from app.exceptions import DatabaseError, ValidationError
 from app.utils import create_env_file, test_mysql_connection, env_file_exists
 
@@ -79,8 +79,11 @@ def index():
             else:
                 try:
                     if gastos_service.add_gasto(categoria, descripcion, float(monto), mes, int(anio)):
+                        print_operation('Gasto Agregado',
+                                        f'{descripcion} - {monto}€')
                         flash('Gasto agregado correctamente', 'success')
                     else:
+                        print_operation('Error', 'Falló al agregar gasto')
                         flash('Error al agregar el gasto', 'error')
                     return redirect(url_for('main.index', mes=mes, anio=anio))
                 except ValidationError as e:
@@ -126,8 +129,10 @@ def delete_gasto(gasto_id):
 
     if gasto:
         if gastos_service.delete_gasto(gasto_id):
+            print_operation('Gasto Eliminado', gasto['descripcion'])
             flash('Gasto eliminado correctamente')
         else:
+            print_operation('Error', 'Falló al eliminar gasto')
             flash('Error al eliminar el gasto', 'error')
         return redirect(url_for('index', mes=gasto['mes'], anio=gasto['anio']))
 
@@ -169,8 +174,10 @@ def edit_gasto(gasto_id):
     anio = request.form.get('anio', gasto['anio'])
 
     if gastos_service.update_gasto(gasto_id, categoria, descripcion, float(monto)):
+        print_operation('Gasto Modificado', f'{descripcion} - {monto}€')
         flash('Gasto actualizado correctamente', 'success')
     else:
+        print_operation('Error', 'Falló al modificar gasto')
         flash('Error al actualizar el gasto', 'error')
 
     return redirect(url_for('main.index', mes=mes, anio=anio))
@@ -450,6 +457,7 @@ def config():
         if "nueva_categoria" in request.form:
             nueva_categoria = request.form["nueva_categoria"].strip()
             if nueva_categoria and categorias_service.add_categoria(nueva_categoria):
+                print_operation('Categoría Agregada', nueva_categoria)
                 flash("Categoría agregada correctamente", "success")
             else:
                 flash("Error al agregar la categoría", "error")
@@ -458,7 +466,13 @@ def config():
         elif "eliminar_categoria" in request.form:
             try:
                 categoria_id = int(request.form["eliminar_categoria"])
+                # Obtener nombre de categoría antes de eliminarla para el print
+                categorias = categorias_service.list_categorias()
+                categoria_nombre = next(
+                    (c['nombre'] for c in categorias if c['id'] == categoria_id), 'Desconocida')
+
                 if categorias_service.delete_categoria(categoria_id):
+                    print_operation('Categoría Eliminada', categoria_nombre)
                     flash("Categoría eliminada correctamente", "success")
                 else:
                     flash("Error al eliminar la categoría", "error")
@@ -584,6 +598,8 @@ def config():
                 nuevo_presupuesto = float(
                     request.form["presupuesto_mensual"].strip())
                 if presupuesto_service.update_presupuesto(mes_actual, anio_actual, nuevo_presupuesto):
+                    print_operation('Presupuesto Actualizado',
+                                    f'{nuevo_presupuesto}€')
                     flash("Presupuesto actualizado correctamente", "success")
                 else:
                     flash("Error al actualizar el presupuesto", "error")

@@ -56,8 +56,12 @@ def setup_logging(app):
         file_handler.setFormatter(formatter)
 
         # Handler para consola
+        # En modo frozen (ejecutable), solo mostrar WARNING o superior
         console_handler = logging.StreamHandler()
-        console_handler.setLevel(log_level)
+        if is_frozen():
+            console_handler.setLevel(logging.WARNING)
+        else:
+            console_handler.setLevel(log_level)
         console_handler.setFormatter(formatter)
 
         # Configurar logger de la aplicación
@@ -65,10 +69,18 @@ def setup_logging(app):
         app.logger.addHandler(file_handler)
         app.logger.addHandler(console_handler)
 
-    # Suprimir logs excesivos de werkzeug en producción
-    if not app.config.get('DEBUG', False):
+    # Suprimir logs excesivos de werkzeug
+    if is_frozen():
+        # En ejecutable, suprimir COMPLETAMENTE werkzeug y todos sus módulos en consola
+        for logger_name in ['werkzeug', 'werkzeug.serving', 'werkzeug.wsgi']:
+            logger = logging.getLogger(logger_name)
+            logger.handlers = []
+            logger.setLevel(logging.CRITICAL)
+            logger.propagate = False
+    else:
         werkzeug_logger = logging.getLogger('werkzeug')
-        werkzeug_logger.setLevel(logging.WARNING)
+        if not app.config.get('DEBUG', False):
+            werkzeug_logger.setLevel(logging.WARNING)
 
     app.logger.info(
         f"Sistema de logging inicializado - Nivel: {logging.getLevelName(log_level)}")
@@ -85,3 +97,30 @@ def get_logger(name: str) -> logging.Logger:
         Logger configurado
     """
     return logging.getLogger(name)
+
+
+def print_operation(operation: str, details: str = ""):
+    """
+    Imprime un mensaje de operación en la consola con estilo.
+
+    Solo se ejecuta en modo frozen (ejecutable).
+    Mantiene un estilo visual consistente con los mensajes de inicio.
+
+    Args:
+        operation: Tipo de operación (ej: 'GASTO AGREGADO', 'GASTO MODIFICADO')
+        details: Detalles adicionales (ej: descripción del gasto)
+    """
+    if is_frozen():
+        # Mapeo de operaciones a emojis
+        emojis = {
+            'agregado': '✅',
+            'modificado': '✏️ ',
+            'eliminado': '🗑️ ',
+            'categoría agregada': '📁',
+            'categoría eliminada': '📁',
+            'presupuesto actualizado': '💰',
+            'error': '❌'
+        }
+
+        emoji = emojis.get(operation.lower(), '📝')
+        print(f"{emoji} {operation}: {details}" if details else f"{emoji} {operation}")

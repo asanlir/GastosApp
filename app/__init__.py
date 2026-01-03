@@ -48,6 +48,12 @@ def create_app(config_name='default'):
     # Configurar logging
     setup_logging(app)
 
+    # En modo frozen, suprimir logs de werkzeug a nivel de Flask
+    if is_frozen():
+        import logging
+        logging.getLogger('werkzeug').setLevel(logging.CRITICAL)
+        app.logger.disabled = False  # Asegurar que nuestros logs sí se muestren
+
     # Verificar si existe .env antes de inicializar BD
     if config_name != 'testing':
         from app.utils import env_file_exists

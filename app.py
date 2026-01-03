@@ -38,6 +38,12 @@ if __name__ == "__main__":
     try:
         # Configurar entorno según modo de ejecución
         if is_frozen():
+            # En modo ejecutable, suprimir logs de werkzeug
+            import logging
+            log = logging.getLogger('werkzeug')
+            log.setLevel(logging.CRITICAL)
+            log.disabled = True
+
             # Modo ejecutable: usar producción y abrir navegador siempre
             print("="*60)
             print("🏠 Aplicación de Gastos Domésticos")
