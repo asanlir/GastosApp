@@ -156,19 +156,19 @@ h3 {
 
 /* --- Ajuste de la tabla de gastos --- */
 .table-container {
-  width: 50%;
+  width: clamp(300px, 90%, 800px);
   margin: 20px auto;
   border: #3498db 1px solid;
   border-radius: 5px;
-  overflow: hidden;
+  overflow-x: auto;
 }
 
 .report-table {
-  width: 35%;
+  width: clamp(280px, 85%, 600px);
   margin: 20px auto;
   border: #3498db 1px solid;
   border-radius: 5px;
-  overflow: hidden;
+  overflow-x: auto;
 }
 
 table {
@@ -265,7 +265,7 @@ button {
 
 /* --- Centrar y estilizar el formulario --- */
 #addGastoForm {
-  width: 25%;
+  width: clamp(280px, 85%, 600px);
   margin: 20px auto; /* Centra el formulario */
   padding: 20px;
   background: white;
@@ -317,7 +317,7 @@ button {
 }
 
 .form-container {
-  width: 50%;
+  width: clamp(300px, 90%, 800px);
   margin: 20px auto; /* Centra el formulario */
   padding: 20px;
   background: white;
@@ -372,13 +372,13 @@ button {
 }
 
 .pie {
-  width: 30%;
+  width: clamp(280px, 85%, 600px);
   margin: 20px auto;
   margin-bottom: 100px;
 }
 
 .bar {
-  width: 50%;
+  width: clamp(320px, 90%, 900px);
   margin: 30px auto;
 }
 
@@ -630,10 +630,10 @@ button {
 
 .modal-content {
   background-color: white;
-  padding: 30px;
+  padding: clamp(20px, 5vw, 40px);
   border-radius: 10px;
-  width: 90%;
-  max-width: 500px;
+  width: clamp(280px, 90%, 600px);
+  max-width: none;
   box-shadow: 0 5px 20px rgba(0, 0, 0, 0.3);
   position: relative;
   animation: modalSlideIn 0.3s ease-out;
@@ -848,9 +848,9 @@ button {
 
 /* Contenedores más estrechos en Configuración */
 .table-container.config-narrow {
-  width: 40%;
-  max-width: 720px;
-  min-width: 420px;
+  width: clamp(280px, 85%, 720px);
+  max-width: none;
+  min-width: unset;
 }
 
 /* --- Estilos de paginación --- */
@@ -1071,4 +1071,296 @@ button {
 .resumen-checkbox-container input[type="checkbox"]:focus {
   outline: none;
   box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.2);
+}
+
+/* ======================================
+   MEDIA QUERIES PARA RESPONSIVE DESIGN
+   ====================================== */
+
+/* Tablets y pantallas medianas (max-width: 1024px) */
+@media (max-width: 1024px) {
+  .sidebar {
+    width: 200px;
+  }
+
+  .content {
+    margin-left: 220px;
+  }
+
+  .main-header {
+    font-size: clamp(18px, 3vw, 22px);
+  }
+
+  table {
+    font-size: clamp(13px, 2vw, 15px);
+  }
+}
+
+/* Móviles y tablets pequeñas (max-width: 768px) */
+@media (max-width: 768px) {
+  body {
+    flex-direction: column;
+  }
+
+  .sidebar {
+    width: 100% !important;
+    height: auto !important;
+    position: relative !important;
+    padding: 15px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+  }
+
+  .sidebar h3 {
+    margin-bottom: 15px;
+    font-size: clamp(16px, 3vw, 20px);
+  }
+
+  .sidebar a {
+    display: inline-block;
+    width: auto;
+    padding: 8px 15px;
+    margin: 5px;
+    font-size: clamp(13px, 2.5vw, 16px);
+  }
+
+  .date-selector {
+    margin-top: 20px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    justify-content: center;
+    align-items: center;
+  }
+
+  .date-selector label {
+    width: 100%;
+    text-align: center;
+  }
+
+  .date-selector select,
+  .date-selector input[type="number"] {
+    width: calc(50% - 10px);
+    margin-bottom: 0;
+  }
+
+  .date-selector button {
+    width: 100%;
+    margin-top: 10px;
+  }
+
+  .content {
+    margin-left: 0 !important;
+    padding: 15px;
+    width: 100%;
+  }
+
+  .main-header {
+    font-size: clamp(16px, 3vw, 20px);
+    padding: 12px;
+  }
+
+  table {
+    font-size: clamp(12px, 2vw, 14px);
+  }
+
+  th,
+  td {
+    padding: clamp(4px, 1vw, 8px);
+    font-size: clamp(11px, 2vw, 13px);
+  }
+
+  .modal-content {
+    padding: clamp(15px, 4vw, 25px);
+  }
+
+  .flash-message {
+    min-width: 200px;
+    max-width: 95%;
+    font-size: clamp(12px, 2.5vw, 16px);
+    padding: clamp(10px, 2vw, 15px);
+  }
+
+  .actions {
+    gap: 8px;
+    display: flex !important;
+    flex-wrap: wrap !important;
+    justify-content: center !important;
+  }
+
+  .actions button {
+    padding: 6px 8px !important;
+    min-width: auto !important;
+  }
+
+  .actions img {
+    width: 18px !important;
+    height: 18px !important;
+  }
+
+  .pagination {
+    gap: 5px;
+  }
+
+  .pagination-btn {
+    padding: 6px 10px;
+    font-size: 12px;
+    min-width: 35px;
+  }
+
+  /* Ajustes para iconos y toggles en móvil */
+  .grafica-toggle-icon {
+    width: 18px;
+    height: 18px;
+  }
+
+  .grafica-toggle-slider {
+    width: 38px;
+    height: 20px;
+  }
+
+  .grafica-toggle-slider::before {
+    width: 16px;
+    height: 16px;
+    top: 2px;
+    left: 2px;
+  }
+
+  .grafica-toggle-input:checked ~ label .grafica-toggle-slider::before {
+    transform: translateX(18px);
+  }
+
+  .resumen-checkbox-container {
+    padding-left: 15%;
+  }
+
+  .resumen-checkbox-container input[type="checkbox"] {
+    width: 20px;
+    height: 20px;
+  }
+}
+
+/* Móviles pequeños (max-width: 480px) */
+@media (max-width: 480px) {
+  .main-header {
+    font-size: clamp(14px, 3vw, 18px);
+    padding: 10px;
+  }
+
+  h1,
+  h2 {
+    font-size: clamp(16px, 4vw, 20px);
+  }
+
+  h3 {
+    font-size: clamp(14px, 3.5vw, 18px);
+  }
+
+  .sidebar a {
+    font-size: clamp(12px, 3vw, 16px);
+    padding: 6px 12px;
+  }
+
+  table {
+    font-size: clamp(11px, 2vw, 13px);
+  }
+
+  th,
+  td {
+    padding: clamp(4px, 1vw, 6px);
+    font-size: clamp(10px, 2vw, 12px);
+  }
+
+  .actions {
+    gap: clamp(4px, 1vw, 8px);
+  }
+
+  .actions button {
+    padding: clamp(3px, 1vw, 6px);
+  }
+
+  .actions img {
+    width: clamp(14px, 3vw, 18px);
+    height: clamp(14px, 3vw, 18px);
+  }
+
+  .modal-content {
+    padding: clamp(12px, 3vw, 20px);
+  }
+
+  .modal-content h2 {
+    font-size: clamp(16px, 4vw, 20px);
+  }
+
+  .modal-form input,
+  .modal-form select {
+    font-size: clamp(12px, 3vw, 15px);
+    padding: clamp(6px, 1.5vw, 10px);
+  }
+
+  .btn-submit,
+  .btn-cancel {
+    font-size: clamp(12px, 3vw, 16px);
+    padding: clamp(8px, 2vw, 12px);
+  }
+
+  .btn-add-gasto,
+  #toggleFormBtn,
+  #toggleCategoriaBtn {
+    font-size: clamp(12px, 3vw, 16px);
+    padding: clamp(8px, 2vw, 12px) clamp(16px, 4vw, 24px);
+  }
+
+  .flash-message {
+    font-size: 12px;
+    padding: 10px 15px;
+  }
+
+  .pagination-btn {
+    padding: 5px 8px;
+    font-size: 11px;
+    min-width: 30px;
+  }
+
+  .pagination-info {
+    font-size: 12px;
+  }
+
+  /* Hacer los gráficos completamente responsivos */
+  .pie,
+  .bar {
+    width: 100% !important;
+    padding: 0 5px;
+  }
+
+  /* Ajustar contenedor de checkbox en móvil pequeño */
+  .resumen-checkbox-container {
+    padding-left: 10%;
+  }
+
+  /* Asegurar que las imágenes no desborden */
+  img {
+    max-width: 100%;
+    height: auto;
+  }
+}
+
+/* Landscape en móviles */
+@media (max-width: 768px) and (orientation: landscape) {
+  .sidebar {
+    padding: 10px;
+  }
+
+  .sidebar a {
+    padding: 6px 10px;
+    margin: 3px;
+    font-size: 13px;
+  }
+
+  .date-selector {
+    margin-top: 10px;
+  }
+
+  .content {
+    padding: 10px;
+  }
 }

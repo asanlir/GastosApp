@@ -111,7 +111,12 @@
                     <input
                       type="checkbox"
                       name="incluir_en_resumen"
-                      {% if categoria.incluir_en_resumen %}checked{% endif %}
+                      {%
+                      if
+                      categoria.incluir_en_resumen
+                      %}checked{%
+                      endif
+                      %}
                       onchange="this.form.submit()"
                     />
                   </div>
@@ -239,7 +244,7 @@
           <tbody>
             <tr>
               <td class="center-text">
-                <strong>{{ presupuesto_actual }} €</strong>
+                <strong>{{ "%.2f"|format(presupuesto_actual) }} €</strong>
               </td>
               <td>
                 <button id="togglePresupuestoBtn" class="btn-edit">
