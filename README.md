@@ -561,7 +561,7 @@ Las contribuciones son bienvenidas! Por favor:
 
 ## 📝 Changelog
 
-### v2026.01.03 (2026-01-03)
+### v2.3.3 (2026-01-03)
 
 **📊 Modo Dual de Visualización: Ventana Deslizante + Histórico**
 
