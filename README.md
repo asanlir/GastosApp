@@ -83,7 +83,7 @@ Ideal para llevar control de gastos familiares, analizar patrones de consumo y m
 
 **¿Solo quieres usar la aplicación sin complicaciones técnicas?**
 
-👉 **[Descargar GastosApp v2.3.2 para Windows](https://github.com/asanlir/GastosApp/releases/latest)**
+👉 **[Descargar GastosApp v2.3.3 para Windows](https://github.com/asanlir/GastosApp/releases/latest)**
 
 ### ¿Qué necesitas?
 
@@ -92,7 +92,7 @@ Ideal para llevar control de gastos familiares, analizar patrones de consumo y m
 
 ### Pasos sencillos:
 
-1. Descarga el archivo `GastosApp-v2.3.2-Windows.zip` desde [Releases](https://github.com/asanlir/GastosApp/releases/latest)
+1. Descarga el archivo `GastosApp-v2.3.3-Windows.zip` desde [Releases](https://github.com/asanlir/GastosApp/releases/latest)
 2. Descomprime el archivo en tu carpeta preferida
 3. **Doble clic en `Gastos.exe`**
 4. Completa el asistente de configuración web con tus credenciales de MySQL
@@ -563,18 +563,36 @@ Las contribuciones son bienvenidas! Por favor:
 
 ### v2.3.3 (2026-01-03)
 
-**📊 Modo Dual de Visualización: Ventana Deslizante + Histórico**
+**📊 Modo Dual de Visualización + Mejoras UX/UI Completas**
 
-- 🎯 **Nueva funcionalidad de gráficos con modo dual**:
-  - **Sin filtro de fecha o mes actual**: Muestra últimos 12 meses desde hoy
+**Funcionalidad Principal**:
+
+- 🎯 **Gráficos con modo dual automático**:
+  - **Sin filtro de fecha o mes actual**: Muestra últimos 12 meses desde hoy (ventana deslizante)
   - **Con filtro de mes/año anterior**: Muestra año completo del período seleccionado
   - Títulos dinámicos que reflejan el contexto ("últimos 12 meses" vs "YYYY")
   - Implementado en todas las gráficas: categorías, gasolina, comparación presupuesto
-- 🐛 **Correcciones**:
-  - Eliminados FutureWarnings de pandas (aplicar `infer_objects(copy=False)` antes de `fillna/ffill`)
-  - Fix en errores de logging durante reinicio del reloader en desarrollo
-- 📦 **Dependencias**: Añadida `python-dateutil` para cálculos de ventana deslizante
-- ✅ **Testing**: 82 tests pasando (11 de charts con cobertura de ambos modos)
+
+**Mejoras UX/UI**:
+
+- 🎨 **Responsividad Fluida 100%**:
+  - Compatibilidad perfecta desde 280px (móviles) a 1440px+ (desktop)
+  - Contenedores, tablas, formularios y modales con anchuras dinámicas
+- 🎫 **Favicon Personalizado**
+- 💰 **Formato de Presupuesto**: Presupuesto mostrado con 2 decimales
+- 📋 **Console Logging Optimizado**:
+
+**Correcciones Técnicas**:
+
+- 🐛 **Pandas**: Eliminados FutureWarnings (aplicar `infer_objects(copy=False)` antes de `fillna/ffill`)
+- 🔧 **Logging**: Fix en errores durante reinicio del Flask reloader en desarrollo
+- 📦 **Dependencias**: Utilizada `python-dateutil.relativedelta` para cálculos de ventana deslizante
+
+**Testing & Distribución**:
+
+- ✅ **Suite Completa**: 82/82 tests pasando (charts, endpoints, queries, services, utils)
+- 📦 **Ejecutable**: PyInstaller v6.13.0, 158.8 MB comprimido
+- 🎯 **Calidad**: Todos los tests actualizados para comportamiento dinámico
 
 ### v2.3.2 (2025-12-08)
 
