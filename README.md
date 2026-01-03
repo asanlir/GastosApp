@@ -561,6 +561,21 @@ Las contribuciones son bienvenidas! Por favor:
 
 ## 📝 Changelog
 
+### v2026.01.03 (2026-01-03)
+
+**📊 Modo Dual de Visualización: Ventana Deslizante + Histórico**
+
+- 🎯 **Nueva funcionalidad de gráficos con modo dual**:
+  - **Sin filtro de fecha o mes actual**: Muestra últimos 12 meses desde hoy
+  - **Con filtro de mes/año anterior**: Muestra año completo del período seleccionado
+  - Títulos dinámicos que reflejan el contexto ("últimos 12 meses" vs "YYYY")
+  - Implementado en todas las gráficas: categorías, gasolina, comparación presupuesto
+- 🐛 **Correcciones**:
+  - Eliminados FutureWarnings de pandas (aplicar `infer_objects(copy=False)` antes de `fillna/ffill`)
+  - Fix en errores de logging durante reinicio del reloader en desarrollo
+- 📦 **Dependencias**: Añadida `python-dateutil` para cálculos de ventana deslizante
+- ✅ **Testing**: 82 tests pasando (11 de charts con cobertura de ambos modos)
+
 ### v2.3.2 (2025-12-08)
 
 **🔧 Correcciones de Bugs**
