@@ -404,6 +404,11 @@ def report():
         comparison_data = charts_service.generate_comparison_chart()
     fig_sin_alquiler = comparison_data['chart']
 
+    # Título dinámico para encabezado de gráficas externas al HTML de Plotly
+    titulo_evolucion = "Evolución de Gastos por Categoría (Últimos 12 meses)"
+    if fecha_seleccionada:
+        titulo_evolucion = f"Evolución de Gastos por Categoría ({anio_actual})"
+
     return render_template('report.html',
                            meses=meses,
                            mes_actual=mes_actual,
@@ -413,7 +418,8 @@ def report():
                            gastos_mes=gastos_mes,
                            fig_pie=fig_pie,
                            charts_por_categoria=charts_por_categoria,
-                           fig_sin_alquiler=fig_sin_alquiler)
+                           fig_sin_alquiler=fig_sin_alquiler,
+                           titulo_evolucion=titulo_evolucion)
 
 
 @main_bp.route('/config', methods=['GET', 'POST'])

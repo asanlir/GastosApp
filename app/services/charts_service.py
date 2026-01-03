@@ -139,7 +139,7 @@ def generate_gas_chart(anio: int = None, mes: str = None) -> str:
     if anio:
         titulo = f"Gastos Gasolina ({anio})"
     else:
-        titulo = "Gastos Gasolina (últimos 12 meses)"
+        titulo = "Gastos Gasolina"
 
     fig.update_layout(
         title=titulo,
@@ -242,7 +242,7 @@ def generate_category_chart(categoria: str, anio: int = None, mes: str = None) -
     if anio:
         titulo = f"Gastos {categoria} ({anio})"
     else:
-        titulo = f"Gastos {categoria} (últimos 12 meses)"
+        titulo = f"Gastos {categoria}"
 
     fig.update_layout(
         barmode='stack',

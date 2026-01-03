@@ -91,7 +91,7 @@
         </div>
 
         <div>
-            <h2>Evolución de Gastos por Categoría (Últimos 12 meses):</h2>
+            <h2>{{ titulo_evolucion }}</h2>
             {% for categoria, chart_html in charts_por_categoria.items() %}
             <div class='bar'>
                 {{ chart_html | safe }}
